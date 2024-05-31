@@ -3,10 +3,9 @@ from __future__ import annotations
 
 from enum import StrEnum
 from dataclasses import dataclass
-from numpy.typing import NDArray
 from pydantic import BaseModel, ConfigDict, Field, constr
 from uuid import UUID
-from typing import Annotated, Any
+from typing import Annotated
 
 from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
@@ -25,7 +24,7 @@ class AivmMetadata:
     # ハイパーパラメータの情報
     hyper_parameters: StyleBertVITS2HyperParameters
     # スタイルベクトルの情報
-    style_vectors: NDArray[Any] | None = None
+    style_vectors: bytes | None = None
 
 
 class AivmManifest(BaseModel):

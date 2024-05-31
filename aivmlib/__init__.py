@@ -1,12 +1,10 @@
 import base64
 import json
-import numpy as np
 import traceback
 import uuid
 from io import BytesIO
-from numpy.typing import NDArray
 from pydantic import ValidationError
-from typing import Any, BinaryIO
+from typing import BinaryIO
 
 from aivmlib.schemas.aivm_manifest import (
     AivmMetadata,
@@ -65,7 +63,7 @@ def generate_aivm_metadata(
         # Style-Bert-VITS2 モデルアーキテクチャの AIVM ファイルではスタイルベクトルが必須
         if style_vectors_file is None:
             raise ValueError('Style vectors file is not specified.')
-        style_vectors: NDArray[Any] = np.load(style_vectors_file)
+        style_vectors = style_vectors_file.read()
 
         # デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
         manifest = DEFAULT_AIVM_MANIFEST.model_copy()
@@ -160,7 +158,7 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     if 'aivm_style_vectors' in metadata:
         try:
             base64_string = metadata['aivm_style_vectors']
-            aivm_style_vectors = np.load(base64.b64decode(base64_string))
+            aivm_style_vectors = base64.b64decode(base64_string)
         except Exception:
             traceback.print_exc()
             raise ValueError('Failed to decode style vectors.')
@@ -215,7 +213,7 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> Byt
     }
     if aivm_metadata.style_vectors is not None:
         # スタイルベクトルが存在する場合は Base64 エンコードして追加
-        metadata['aivm_style_vectors'] = base64.b64encode(aivm_metadata.style_vectors.tobytes()).decode('utf-8')
+        metadata['aivm_style_vectors'] = base64.b64encode(aivm_metadata.style_vectors).decode('utf-8')
 
     # AIVM ファイルの内容を一度に読み取る
     aivm_file_buffer = aivm_file.read()
