@@ -12,6 +12,71 @@ AivisSpeech をはじめとした対応ソフトウェアに AIVM ファイル�
 
 [`__main__.py`](aivmlib/__main__.py) に実装されている CLI ツールを参照してください。
 
+下記は CLI ツール自体の使い方です。
+
+```python
+> poetry run python -m aivmlib --help
+
+ Usage: python -m aivmlib [OPTIONS] COMMAND [ARGS]...
+
+ Aivis Voice Model File (.aivm) Utility Library
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --install-completion          Install completion for the current shell.                          │
+│ --show-completion             Show completion for the current shell, to copy it or customize the │
+│                               installation.                                                      │
+│ --help                        Show this message and exit.                                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
+│ create-aivm     与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルから AIVM          │
+│                 メタデータを生成した上で、 それを書き込んだ仮の AIVM ファイルを生成する          │
+│ show-metadata   指定されたパスの AIVM ファイル内に記録されている AIVM                            │
+│                 メタデータを見やすく出力する                                                     │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+> poetry run python -m aivmlib create-aivm --help
+
+ Usage: python -m aivmlib create-aivm [OPTIONS]
+
+ 与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルから AIVM メタデータを生成した上で、
+ それを書き込んだ仮の AIVM ファイルを生成する
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ *  --output              -o      PATH                            Path to the output AIVM file    │
+│                                                                  [default: None]                 │
+│                                                                  [required]                      │
+│ *  --model               -m      PATH                            Path to the Safetensors model   │
+│                                                                  file                            │
+│                                                                  [default: None]                 │
+│                                                                  [required]                      │
+│ *  --hyper-parameters    -h      PATH                            Path to the hyper parameters    │
+│                                                                  file                            │
+│                                                                  [default: None]                 │
+│                                                                  [required]                      │
+│    --style-vectors       -s      PATH                            Path to the style vectors file  │
+│                                                                  (optional)                      │
+│                                                                  [default: None]                 │
+│    --model-architecture  -a      [Style-Bert-VITS2|Style-Bert-V  Model architecture              │
+│                                  ITS2 (JP-Extra)]                [default: Style-Bert-VITS2      │
+│                                                                  (JP-Extra)]                     │
+│    --help                                                        Show this message and exit.     │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+>  poetry run python -m aivmlib show-metadata --help
+
+ Usage: python -m aivmlib show-metadata [OPTIONS] AIVM_FILE_PATH
+
+ 指定されたパスの AIVM ファイル内に記録されている AIVM メタデータを見やすく出力する
+
+╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮
+│ *    aivm_file_path      PATH  Path to the AIVM file [default: None] [required]                  │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                                      │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+```
+
 ## AIVM 1.0 Specification
 
 AIVM は、Safetensors 形式の学習済み音声合成モデルのヘッダー領域の中に、カスタムメタデータとして話者メタデータ・ハイパーパラメータ・スタイルベクトルといった各種情報を JSON 文字列として格納したファイルフォーマットである。
