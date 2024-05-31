@@ -13,6 +13,7 @@ from aivmlib.schemas.aivm_manifest import (
     AivmManifestSpeaker,
     AivmManifestStyle,
     DEFAULT_AIVM_MANIFEST,
+    ModelArchitecture,
 )
 from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
@@ -32,7 +33,7 @@ from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 
 
 def generate_aivm_metadata(
-    model_architecture: str,
+    model_architecture: ModelArchitecture,
     hyper_parameters_file: BinaryIO,
     style_vectors_file: BinaryIO | None = None,
 ) -> AivmMetadata:
@@ -40,15 +41,17 @@ def generate_aivm_metadata(
     ハイパーパラメータファイルとスタイルベクトルファイルから AIVM メタデータを生成する
 
     Args:
-        model_architecture (str): 音声合成モデルのアーキテクチャ
+        model_architecture (ModelArchitecture): 音声合成モデルのアーキテクチャ
         hyper_parameters_file (BinaryIO): ハイパーパラメータファイル
         style_vectors_file (BinaryIO | None): スタイルベクトルファイル
 
     Returns:
         AivmMetadata: AIVM メタデータ
     """
+
     # Style-Bert-VITS2 系の音声合成モデルの場合
     if model_architecture.startswith('Style-Bert-VITS2'):
+
         # ハイパーパラメータファイル (JSON) を読み込んだ後、Pydantic でバリデーションする
         hyper_parameters_content = hyper_parameters_file.read().decode('utf-8')
         try:
@@ -57,10 +60,11 @@ def generate_aivm_metadata(
             print(error)
             raise ValueError(f"{model_architecture} のハイパーパラメータファイルの形式が正しくありません。")
 
-        # スタイルベクトルファイルを読み込む（存在する場合）
-        style_vectors: NDArray[Any] | None = None
-        if style_vectors_file:
-            style_vectors = np.load(style_vectors_file)
+        # スタイルベクトルファイルを読み込む
+        # Style-Bert-VITS2 モデルアーキテクチャの AIVM ファイルではスタイルベクトルが必須
+        if style_vectors_file is None:
+            raise ValueError('スタイルベクトルファイルが指定されていません。')
+        style_vectors: NDArray[Any] = np.load(style_vectors_file)
 
         # デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
         manifest = DEFAULT_AIVM_MANIFEST.model_copy()
@@ -115,6 +119,7 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     Returns:
         AivmMetadata: AIVM メタデータ
     """
+
     # ファイルの内容を読み込む
     array_buffer = aivm_file.read()
     header_size = int.from_bytes(array_buffer[:8], 'little')
@@ -176,8 +181,14 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> Byt
     Returns:
         BytesIO: 書き込みが完了した AIVM or (メタデータが書き込まれていない素の Safetensors) ファイル
     """
+
     # Style-Bert-VITS2 系の音声合成モデルでは、AIVM マニフェストの内容をハイパーパラメータにも反映する
     if aivm_metadata.manifest.model_architecture.startswith('Style-Bert-VITS2'):
+
+        # スタイルベクトルが設定されていなければエラー
+        if aivm_metadata.style_vectors is None:
+            raise ValueError('スタイルベクトルが設定されていません。')
+
         # モデル名を反映
         aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name
 

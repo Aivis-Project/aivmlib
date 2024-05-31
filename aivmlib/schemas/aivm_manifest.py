@@ -11,6 +11,8 @@ from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 
 
+ModelArchitecture = Literal['Style-Bert-VITS2', 'Style-Bert-VITS2 (JP-Extra)']
+
 @dataclass
 class AivmMetadata:
     """ AIVM ファイルに含まれる全てのメタデータ """
@@ -34,7 +36,7 @@ class AivmManifest(BaseModel):
     # 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列になる)
     terms_of_use: str = ''
     # 音声合成モデルのアーキテクチャ (音声合成技術の種類)
-    model_architecture: Literal['Style-Bert-VITS2', 'Style-Bert-VITS2 (JP-Extra)']
+    model_architecture: ModelArchitecture
     # 音声合成モデルを一意に識別する UUID
     uuid: UUID
     # 音声合成モデルのバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
