@@ -3,6 +3,8 @@ import rich
 import typer
 from io import BytesIO
 from pathlib import Path
+from rich.rule import Rule
+from rich.style import Style
 from typing import Annotated, Union
 
 from aivmlib import read_aivm_metadata, generate_aivm_metadata, write_aivm_metadata
@@ -22,17 +24,29 @@ def show_metadata(
     try:
         with aivm_file_path.open('rb') as aivm_file:
             metadata = read_aivm_metadata(aivm_file)
-            rich.print(metadata)
+            for speaker in metadata.manifest.speakers:
+                for style in speaker.styles:
+                    style.icon = '(Image Base64 DataURL)'
+                    for sample in style.voice_samples:
+                        sample.audio = '(Audio Base64 DataURL)'
+            rich.print(Rule(title='AIVM Manifest:', characters='=', style=Style(color='#E33157')))
+            rich.print(metadata.manifest)
+            rich.print(Rule(title='Hyper Parameters:', characters='=', style=Style(color='#E33157')))
+            rich.print(metadata.hyper_parameters)
+            rich.print(Rule(characters='=', style=Style(color='#E33157')))
     except Exception as e:
+        rich.print(Rule(characters='=', style=Style(color='#E33157')))
         rich.print(f'[red]Error reading AIVM file: {e}[/red]')
+        rich.print(Rule(characters='=', style=Style(color='#E33157')))
 
 
 @app.command()
 def create_aivm(
-    model_architecture: Annotated[ModelArchitecture, typer.Argument(help='Model architecture')],
-    safetensors_model_path: Annotated[Path, typer.Argument(help='Path to the Safetensors model file')],
-    hyper_parameters_path: Annotated[Path, typer.Argument(help='Path to the hyper parameters file')],
-    style_vectors_path: Annotated[Union[Path, None], typer.Argument(help='Path to the style vectors file (optional)')],
+    output_path: Annotated[Path, typer.Option('-o', '--output', help='Path to the output AIVM file')],
+    safetensors_model_path: Annotated[Path, typer.Option('-m', '--model', help='Path to the Safetensors model file')],
+    hyper_parameters_path: Annotated[Path, typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file')],
+    style_vectors_path: Annotated[Union[Path, None], typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')] = None,
+    model_architecture: Annotated[ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')] = ModelArchitecture.StyleBertVITS2JPExtra,
 ):
     """
     与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルから AIVM メタデータを生成した上で、
@@ -47,12 +61,15 @@ def create_aivm(
                 safetensors_data = BytesIO(safetensors_file.read())
                 new_aivm_file = write_aivm_metadata(safetensors_data, metadata)
 
-                output_path = Path('output.aivm')
                 with output_path.open('wb') as f:
                     f.write(new_aivm_file.read())
-                rich.print(f'Generated AIVM file at {output_path}')
+                rich.print(Rule(characters='=', style=Style(color='#E33157')))
+                rich.print(f'Generated AIVM file: {output_path}')
+                rich.print(Rule(characters='=', style=Style(color='#E33157')))
     except Exception as e:
+        rich.print(Rule(characters='=', style=Style(color='#E33157')))
         rich.print(f'[red]Error creating AIVM file: {e}[/red]')
+        rich.print(Rule(characters='=', style=Style(color='#E33157')))
 
 
 if __name__ == '__main__':
