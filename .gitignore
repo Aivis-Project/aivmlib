@@ -141,6 +141,10 @@ cython_debug/
 # ignore .gitkeep
 !.gitkeep
 
+# macOS
+.DS_Store
+._*
+
 .python-version
 build/
 dist/
