@@ -6,7 +6,11 @@
 **AIVM** (**Ai**vis **V**oice **M**odel) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。  
 AivisSpeech をはじめとした対応ソフトウェアに AIVM ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
 
-このライブラリでは、AIVM ファイルのメタデータを読み書きするためのユーティリティを提供します。
+このライブラリでは、AIVM ファイルのメタデータを読み書きするためのユーティリティを提供します。  
+
+> [!TIP]
+> [AIVM Generator](https://aivm-generator.aivis-project.com/) では、ブラウザ上の GUI で AIVM ファイルを生成・編集できます。  
+> 機能的には aivmlib と同じです。手動で AIVM ファイルを生成・編集する際は AIVM Generator の利用をおすすめします。
 
 ## Usage
 
@@ -14,70 +18,75 @@ AivisSpeech をはじめとした対応ソフトウェアに AIVM ファイル�
 
 下記は CLI ツール自体の使い方です。
 
-```python
-> poetry run python -m aivmlib --help
+```bash
+$ poetry run python -m aivmlib --help
 
  Usage: python -m aivmlib [OPTIONS] COMMAND [ARGS]...
 
  Aivis Voice Model File (.aivm) Utility Library
 
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
-│ --install-completion          Install completion for the current shell.                          │
-│ --show-completion             Show completion for the current shell, to copy it or customize the │
-│                               installation.                                                      │
-│ --help                        Show this message and exit.                                        │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
-│ create-aivm     与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルから AIVM          │
-│                 メタデータを生成した上で、 それを書き込んだ仮の AIVM ファイルを生成する          │
-│ show-metadata   指定されたパスの AIVM ファイル内に記録されている AIVM                            │
-│                 メタデータを見やすく出力する                                                     │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────────────────╮
+│ --install-completion          Install completion for the current shell.           │
+│ --show-completion             Show completion for the current shell, to copy it   │
+│                               or customize the installation.                      │
+│ --help                        Show this message and exit.                         │
+╰───────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ────────────────────────────────────────────────────────────────────────╮
+│ create-aivm     与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルか… │
+│                 AIVM メタデータを生成した上で、 それを書き込んだ仮の AIVM         │
+│                 ファイルを生成する                                                │
+│ show-metadata   指定されたパスの AIVM ファイル内に記録されている AIVM             │
+│                 メタデータを見やすく出力する                                      │
+╰───────────────────────────────────────────────────────────────────────────────────╯
 
-> poetry run python -m aivmlib create-aivm --help
+$ python -m aivmlib create-aivm --help
 
  Usage: python -m aivmlib create-aivm [OPTIONS]
 
- 与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルから AIVM メタデータを生成した上で、
- それを書き込んだ仮の AIVM ファイルを生成する
+ 与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルから AIVM
+ メタデータを生成した上で、 それを書き込んだ仮の AIVM ファイルを生成する
 
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
-│ *  --output              -o      PATH                            Path to the output AIVM file    │
-│                                                                  [default: None]                 │
-│                                                                  [required]                      │
-│ *  --model               -m      PATH                            Path to the Safetensors model   │
-│                                                                  file                            │
-│                                                                  [default: None]                 │
-│                                                                  [required]                      │
-│ *  --hyper-parameters    -h      PATH                            Path to the hyper parameters    │
-│                                                                  file                            │
-│                                                                  [default: None]                 │
-│                                                                  [required]                      │
-│    --style-vectors       -s      PATH                            Path to the style vectors file  │
-│                                                                  (optional)                      │
-│                                                                  [default: None]                 │
-│    --model-architecture  -a      [Style-Bert-VITS2|Style-Bert-V  Model architecture              │
-│                                  ITS2 (JP-Extra)]                [default: Style-Bert-VITS2      │
-│                                                                  (JP-Extra)]                     │
-│    --help                                                        Show this message and exit.     │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────────────────╮
+│ *  --output              -o      PATH                    Path to the output AIVM  │
+│                                                          file                     │
+│                                                          [default: None]          │
+│                                                          [required]               │
+│ *  --model               -m      PATH                    Path to the Safetensors  │
+│                                                          model file               │
+│                                                          [default: None]          │
+│                                                          [required]               │
+│ *  --hyper-parameters    -h      PATH                    Path to the hyper        │
+│                                                          parameters file          │
+│                                                          [default: None]          │
+│                                                          [required]               │
+│    --style-vectors       -s      PATH                    Path to the style        │
+│                                                          vectors file (optional)  │
+│                                                          [default: None]          │
+│    --model-architecture  -a      [Style-Bert-VITS2|Styl  Model architecture       │
+│                                  e-Bert-VITS2            [default:                │
+│                                  (JP-Extra)]             Style-Bert-VITS2         │
+│                                                          (JP-Extra)]              │
+│    --help                                                Show this message and    │
+│                                                          exit.                    │
+╰───────────────────────────────────────────────────────────────────────────────────╯
 
->  poetry run python -m aivmlib show-metadata --help
+$ python -m aivmlib show-metadata --help
 
  Usage: python -m aivmlib show-metadata [OPTIONS] AIVM_FILE_PATH
 
  指定されたパスの AIVM ファイル内に記録されている AIVM メタデータを見やすく出力する
 
-╭─ Arguments ──────────────────────────────────────────────────────────────────────────────────────╮
-│ *    aivm_file_path      PATH  Path to the AIVM file [default: None] [required]                  │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
-│ --help          Show this message and exit.                                                      │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-
+╭─ Arguments ───────────────────────────────────────────────────────────────────────╮
+│ *    aivm_file_path      PATH  Path to the AIVM file [default: None] [required]   │
+╰───────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                       │
+╰───────────────────────────────────────────────────────────────────────────────────╯
 ```
 
 ## AIVM 1.0 Specification
+
+以下に AIVM ファイルフォーマット (Version 1.0) の仕様を示す。
 
 AIVM は、Safetensors 形式の学習済み音声合成モデルのヘッダー領域の中に、カスタムメタデータとして話者メタデータ・ハイパーパラメータ・スタイルベクトルといった各種情報を JSON 文字列として格納したファイルフォーマットである。
 
@@ -90,13 +99,13 @@ Safetensors のヘッダー JSON にはテンソルのオフセット等が格�
 
 この仕様を活用し、AIVM は `__metadata__` 内の以下のキーに次のデータを JSON シリアライズして格納する。
 
-- `aivm_manifest` : AIVM マニフェスト
+- **`aivm_manifest` : AIVM マニフェスト**
   - JSON 文字列で格納される
   - マニフェストバージョンや話者メタデータを含む大半の情報が含まれる
-- `aivm_hyper_parameters` : ハイパーパラメータ
+- **`aivm_hyper_parameters` : ハイパーパラメータ**
   - 格納フォーマットはモデルアーキテクチャの実装依存
   - `Style-Bert-VITS2`・`Style-Bert-VITS2 (JP-Extra)` モデルアーキテクチャでは JSON 文字列で格納される
-- `aivm_style_vectors` : Base64 エンコードされたスタイルベクトル (バイナリ)
+- **`aivm_style_vectors` : Base64 エンコードされたスタイルベクトル (バイナリ)**
   - Base64 デコード後のフォーマットはモデルアーキテクチャの実装依存
   - `Style-Bert-VITS2`・`Style-Bert-VITS2 (JP-Extra)` モデルアーキテクチャでは NumPy 配列 (.npy) を Base64 エンコードした文字列で格納される
   - モデルアーキテクチャ次第では省略されうる
@@ -108,7 +117,11 @@ AIVM マニフェストは JSON フォーマットとする。
 AIVM マニフェストには、マニフェストバージョン (= AIVM ファイルバージョン)・モデルアーキテクチャ・モデル名・話者メタデータ・スタイル情報などが含まれる。  
 JSON フォーマットの都合上、画像や音声データは Base64 エンコードされた文字列で格納される。
 
-以下は AIVM 1.0 仕様での AIVM マニフェストのフィールド定義を示す ([Pydantic スキーマ定義](aivmlib/schemas/aivm_manifest.py) より抜粋) 。
+以下は AIVM 1.0 時点での AIVM マニフェストのフィールド定義を示す ([Pydantic スキーマ定義](aivmlib/schemas/aivm_manifest.py) より抜粋) 。
+
+> [!IMPORTANT]
+> AIVM マニフェスト内のフィールドは、今後 AIVM ファイルフォーマットの仕様が更新された際に追加・削除される可能性がある。  
+> 現在有効な AIVM マニフェストバージョンは 1.0 のみ。
 
 ```python
 class AivmManifest(BaseModel):
