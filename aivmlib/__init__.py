@@ -1,6 +1,7 @@
 import base64
 import json
 import numpy as np
+import traceback
 import uuid
 from io import BytesIO
 from numpy.typing import NDArray
@@ -56,21 +57,21 @@ def generate_aivm_metadata(
         hyper_parameters_content = hyper_parameters_file.read().decode('utf-8')
         try:
             hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(hyper_parameters_content)
-        except ValidationError as error:
-            print(error)
-            raise ValueError(f"{model_architecture} のハイパーパラメータファイルの形式が正しくありません。")
+        except ValidationError:
+            traceback.print_exc()
+            raise ValueError(f"The format of the hyper-parameters file for {model_architecture} is incorrect.")
 
         # スタイルベクトルファイルを読み込む
         # Style-Bert-VITS2 モデルアーキテクチャの AIVM ファイルではスタイルベクトルが必須
         if style_vectors_file is None:
-            raise ValueError('スタイルベクトルファイルが指定されていません。')
+            raise ValueError('Style vectors file is not specified.')
         style_vectors: NDArray[Any] = np.load(style_vectors_file)
 
         # デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
         manifest = DEFAULT_AIVM_MANIFEST.model_copy()
         manifest.name = hyper_parameters.model_name
         # モデルアーキテクチャは Style-Bert-VITS2 系であれば異なる値が指定されても動作するように、ハイパーパラメータの値を使用する
-        manifest.model_architecture = 'Style-Bert-VITS2 (JP-Extra)' if hyper_parameters.data.use_jp_extra else 'Style-Bert-VITS2'
+        manifest.model_architecture = ModelArchitecture.StyleBertVITS2JPExtra if hyper_parameters.data.use_jp_extra else ModelArchitecture.StyleBertVITS2
         # モデル UUID はランダムに生成
         manifest.uuid = uuid.uuid4()
 
@@ -106,7 +107,7 @@ def generate_aivm_metadata(
             style_vectors=style_vectors,
         )
 
-    raise ValueError(f"音声合成モデルアーキテクチャ {model_architecture} には対応していません。")
+    raise ValueError(f"Unsupported model architecture: {model_architecture}.")
 
 
 def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
@@ -132,14 +133,14 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     # "__metadata__" キーから AIVM メタデータを取得
     metadata = header_json.get('__metadata__')
     if not metadata or not metadata.get('aivm_manifest'):
-        raise ValueError('AIVM マニフェストが見つかりません。')
+        raise ValueError('AIVM manifest not found.')
 
     # AIVM マニフェストをパースしてバリデーション
     try:
         aivm_manifest = AivmManifest.model_validate_json(metadata['aivm_manifest'])
-    except ValidationError as error:
-        print(error)
-        raise ValueError('AIVM マニフェストの形式が正しくありません。')
+    except ValidationError:
+        traceback.print_exc()
+        raise ValueError('Invalid AIVM manifest format.')
 
     # ハイパーパラメータのバリデーション
     if 'aivm_hyper_parameters' in metadata:
@@ -147,12 +148,12 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
             if aivm_manifest.model_architecture.startswith('Style-Bert-VITS2'):
                 aivm_hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(metadata['aivm_hyper_parameters'])
             else:
-                raise ValueError(f"モデルアーキテクチャ {aivm_manifest.model_architecture} のハイパーパラメータには対応していません。")
-        except ValidationError as error:
-            print(error)
-            raise ValueError('ハイパーパラメータの形式が正しくありません。')
+                raise ValueError(f"Unsupported hyper-parameters for model architecture: {aivm_manifest.model_architecture}.")
+        except ValidationError:
+            traceback.print_exc()
+            raise ValueError('Invalid hyper-parameters format.')
     else:
-        raise ValueError('ハイパーパラメータが見つかりません。')
+        raise ValueError('Hyper-parameters not found.')
 
     # スタイルベクトルのデコード
     aivm_style_vectors = None
@@ -160,8 +161,9 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
         try:
             base64_string = metadata['aivm_style_vectors']
             aivm_style_vectors = np.load(base64.b64decode(base64_string))
-        except Exception as error:
-            raise ValueError('スタイルベクトルのデコードに失敗しました。')
+        except Exception:
+            traceback.print_exc()
+            raise ValueError('Failed to decode style vectors.')
 
     return AivmMetadata(
         manifest=aivm_manifest,
@@ -187,7 +189,7 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> Byt
 
         # スタイルベクトルが設定されていなければエラー
         if aivm_metadata.style_vectors is None:
-            raise ValueError('スタイルベクトルが設定されていません。')
+            raise ValueError('Style vectors are not set.')
 
         # モデル名を反映
         aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name

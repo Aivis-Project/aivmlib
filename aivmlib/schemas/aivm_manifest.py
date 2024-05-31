@@ -1,17 +1,21 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
 from dataclasses import dataclass
 from numpy.typing import NDArray
-from pydantic import BaseModel, Field, constr
+from pydantic import BaseModel, ConfigDict, Field, constr
 from uuid import UUID
-from typing import Annotated, Any, Literal
+from typing import Annotated, Any
 
 from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 
 
-ModelArchitecture = Literal['Style-Bert-VITS2', 'Style-Bert-VITS2 (JP-Extra)']
+class ModelArchitecture(StrEnum):
+    StyleBertVITS2 = 'Style-Bert-VITS2'
+    StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'
+
 
 @dataclass
 class AivmMetadata:
@@ -43,6 +47,9 @@ class AivmManifest(BaseModel):
     version: Annotated[str, constr(pattern=r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')]
     # 音声合成モデルの話者情報 (最低 1 人以上の話者が必要)
     speakers: list[AivmManifestSpeaker]
+
+    # model_ 以下を Pydantic の保護対象から除外する
+    model_config = ConfigDict(protected_namespaces=())
 
 class AivmManifestSpeaker(BaseModel):
     """ AIVM マニフェストの話者情報 """
@@ -85,7 +92,7 @@ DEFAULT_AIVM_MANIFEST = AivmManifest(
     name = 'Model Name',
     description = '',
     terms_of_use = '',
-    model_architecture = 'Style-Bert-VITS2 (JP-Extra)',
+    model_architecture = ModelArchitecture.StyleBertVITS2JPExtra,
     uuid = UUID('00000000-0000-0000-0000-000000000000'),
     version = '1.0.0',
     speakers = [
