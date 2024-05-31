@@ -18,7 +18,8 @@ AIVM は、Safetensors 形式の学習済み音声合成モデルのヘッダー
 
 ### Safetensors 形式との互換性
 
-Safetensors 形式の拡張仕様のため、そのまま通常の Safetensors ファイルとしてロードできる。  
+Safetensors 形式の拡張仕様のため、そのまま通常の Safetensors ファイルとしてロードできる。
+
 Safetensors 同様、先頭 8bytes の符号なし Little-Endian 64bit 整数がヘッダーサイズ、その後ろにヘッダーサイズの長さだけ UTF-8 の JSON 文字列が続く。  
 Safetensors のヘッダー JSON にはテンソルのオフセット等が格納されているが、`__metadata__` キーには string から string への map を自由に設定可能な仕様である。
 
@@ -37,12 +38,12 @@ Safetensors のヘッダー JSON にはテンソルのオフセット等が格�
 
 ### AIVM マニフェストの仕様
 
-AIVM マニフェストは JSON 形式とする。
+AIVM マニフェストは JSON フォーマットとする。
 
 AIVM マニフェストには、マニフェストバージョン (= AIVM ファイルバージョン)・モデルアーキテクチャ・モデル名・話者メタデータ・スタイル情報などが含まれる。  
-JSON 形式の都合上、画像や音声データは Base64 エンコードされた文字列で格納される。
+JSON フォーマットの都合上、画像や音声データは Base64 エンコードされた文字列で格納される。
 
-AIVM マニフェストのフィールド定義は以下の通り ([Pydantic モデル定義](aivmlib/schemas/aivm_manifest.py) より抜粋) 。
+以下は AIVM 1.0 仕様での AIVM マニフェストのフィールド定義を示す ([Pydantic スキーマ定義](aivmlib/schemas/aivm_manifest.py) より抜粋) 。
 
 ```python
 class AivmManifest(BaseModel):
