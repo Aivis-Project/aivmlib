@@ -10,7 +10,7 @@ from aivmlib.schemas.aivm_manifest import (
     AivmMetadata,
     AivmManifest,
     AivmManifestSpeaker,
-    AivmManifestStyle,
+    AivmManifestSpeakerStyle,
     DEFAULT_AIVM_MANIFEST,
     ModelArchitecture,
 )
@@ -87,7 +87,7 @@ def generate_aivm_metadata(
                 version = '1.0.0',
                 # style2id の内容を反映
                 styles = [
-                    AivmManifestStyle(
+                    AivmManifestSpeakerStyle(
                         name = style_name,
                         icon = DEFAULT_ICON_DATA_URL,
                         voice_samples = [],

@@ -63,10 +63,10 @@ class AivmManifestSpeaker(BaseModel):
     # 話者のバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
     version: Annotated[str, constr(pattern=r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')]
     # 話者のスタイル情報 (最低 1 つ以上のスタイルが必要)
-    styles: list[AivmManifestStyle]
+    styles: list[AivmManifestSpeakerStyle]
 
-class AivmManifestStyle(BaseModel):
-    """ AIVM マニフェストのスタイル情報 """
+class AivmManifestSpeakerStyle(BaseModel):
+    """ AIVM マニフェストの話者スタイル情報 """
     # スタイルの名前
     name: Annotated[str, constr(min_length=1)]
     # スタイルのアイコン画像 (Data URL)
@@ -102,7 +102,7 @@ DEFAULT_AIVM_MANIFEST = AivmManifest(
             local_id = 0,
             version = '1.0.0',
             styles = [
-                AivmManifestStyle(
+                AivmManifestSpeakerStyle(
                     name = 'ノーマル',
                     icon = DEFAULT_ICON_DATA_URL,
                     voice_samples = [],
