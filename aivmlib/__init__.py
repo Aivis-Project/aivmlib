@@ -57,12 +57,12 @@ def generate_aivm_metadata(
             hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(hyper_parameters_content)
         except ValidationError:
             traceback.print_exc()
-            raise ValueError(f"The format of the hyper-parameters file for {model_architecture} is incorrect.")
+            raise AivmValidationError(f"The format of the hyper-parameters file for {model_architecture} is incorrect.")
 
         # スタイルベクトルファイルを読み込む
         # Style-Bert-VITS2 モデルアーキテクチャの AIVM ファイルではスタイルベクトルが必須
         if style_vectors_file is None:
-            raise ValueError('Style vectors file is not specified.')
+            raise AivmValidationError('Style vectors file is not specified.')
         style_vectors = style_vectors_file.read()
 
         # デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
@@ -105,7 +105,7 @@ def generate_aivm_metadata(
             style_vectors=style_vectors,
         )
 
-    raise ValueError(f"Unsupported model architecture: {model_architecture}.")
+    raise AivmValidationError(f"Unsupported model architecture: {model_architecture}.")
 
 
 def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
@@ -131,14 +131,14 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     # "__metadata__" キーから AIVM メタデータを取得
     metadata = header_json.get('__metadata__')
     if not metadata or not metadata.get('aivm_manifest'):
-        raise ValueError('AIVM manifest not found.')
+        raise AivmValidationError('AIVM manifest not found.')
 
     # AIVM マニフェストをパースしてバリデーション
     try:
         aivm_manifest = AivmManifest.model_validate_json(metadata['aivm_manifest'])
     except ValidationError:
         traceback.print_exc()
-        raise ValueError('Invalid AIVM manifest format.')
+        raise AivmValidationError('Invalid AIVM manifest format.')
 
     # ハイパーパラメータのバリデーション
     if 'aivm_hyper_parameters' in metadata:
@@ -146,12 +146,12 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
             if aivm_manifest.model_architecture.startswith('Style-Bert-VITS2'):
                 aivm_hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(metadata['aivm_hyper_parameters'])
             else:
-                raise ValueError(f"Unsupported hyper-parameters for model architecture: {aivm_manifest.model_architecture}.")
+                raise AivmValidationError(f"Unsupported hyper-parameters for model architecture: {aivm_manifest.model_architecture}.")
         except ValidationError:
             traceback.print_exc()
-            raise ValueError('Invalid hyper-parameters format.')
+            raise AivmValidationError('Invalid hyper-parameters format.')
     else:
-        raise ValueError('Hyper-parameters not found.')
+        raise AivmValidationError('Hyper-parameters not found.')
 
     # スタイルベクトルのデコード
     aivm_style_vectors = None
@@ -161,7 +161,7 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
             aivm_style_vectors = base64.b64decode(base64_string)
         except Exception:
             traceback.print_exc()
-            raise ValueError('Failed to decode style vectors.')
+            raise AivmValidationError('Failed to decode style vectors.')
 
     return AivmMetadata(
         manifest=aivm_manifest,
@@ -187,7 +187,7 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> Byt
 
         # スタイルベクトルが設定されていなければエラー
         if aivm_metadata.style_vectors is None:
-            raise ValueError('Style vectors are not set.')
+            raise AivmValidationError('Style vectors are not set.')
 
         # モデル名を反映
         aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name
@@ -245,8 +245,8 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> Byt
     return new_aivm_file
 
 
-class AivmParseError(Exception):
+class AivmValidationError(Exception):
     """
-    AIVM ファイルのパース中にエラーが発生したときに発生する例外
+    AIVM ファイルの読み取り中にエラーが発生したときに発生する例外
     """
     pass
