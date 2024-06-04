@@ -2,7 +2,6 @@ import base64
 import json
 import traceback
 import uuid
-from io import BytesIO
 from pydantic import ValidationError
 from typing import BinaryIO
 
@@ -170,7 +169,7 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     )
 
 
-def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> BytesIO:
+def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> bytes:
     """
     AIVM メタデータを AIVM ファイルに書き込む
 
@@ -179,7 +178,7 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> Byt
         aivm_metadata (AivmMetadata): AIVM メタデータ
 
     Returns:
-        BytesIO: 書き込みが完了した AIVM or (メタデータが書き込まれていない素の Safetensors) ファイル
+        bytes: 書き込みが完了した AIVM or (メタデータが書き込まれていない素の Safetensors) ファイルのバイト列
     """
 
     # Style-Bert-VITS2 系の音声合成モデルでは、AIVM マニフェストの内容をハイパーパラメータにも反映する
@@ -239,10 +238,8 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> Byt
 
     # 新しい AIVM ファイルの内容を作成
     new_aivm_file_content = new_header_size + new_header_bytes + aivm_file_buffer[8 + existing_header_size:]
-    new_aivm_file = BytesIO(new_aivm_file_content)
-    new_aivm_file.seek(0)
 
-    return new_aivm_file
+    return new_aivm_file_content
 
 
 class AivmValidationError(Exception):

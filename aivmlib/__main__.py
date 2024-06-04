@@ -1,7 +1,6 @@
 
 import rich
 import typer
-from io import BytesIO
 from pathlib import Path
 from rich.rule import Rule
 from rich.style import Style
@@ -58,11 +57,10 @@ def create_aivm(
             metadata = generate_aivm_metadata(model_architecture, hyper_parameters_file, style_vectors_file)
 
             with safetensors_model_path.open('rb') as safetensors_file:
-                safetensors_data = BytesIO(safetensors_file.read())
-                new_aivm_file = write_aivm_metadata(safetensors_data, metadata)
+                new_aivm_file_content = write_aivm_metadata(safetensors_file, metadata)
 
                 with output_path.open('wb') as f:
-                    f.write(new_aivm_file.read())
+                    f.write(new_aivm_file_content)
                 rich.print(Rule(characters='=', style=Style(color='#E33157')))
                 rich.print(f'Generated AIVM file: {output_path}')
                 rich.print(Rule(characters='=', style=Style(color='#E33157')))
