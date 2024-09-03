@@ -48,7 +48,7 @@ def create_aivm(
     model_architecture: Annotated[ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')] = ModelArchitecture.StyleBertVITS2JPExtra,
 ):
     """
-    与えられたアーキテクチャ・ハイパーパラメータ・スタイルベクトルから AIVM メタデータを生成した上で、
+    与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ, スタイルベクトルから AIVM メタデータを生成した上で、
     それを書き込んだ仮の AIVM ファイルを生成する
     """
     try:
