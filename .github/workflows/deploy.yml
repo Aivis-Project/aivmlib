@@ -1,0 +1,52 @@
+name: Deploy to PyPI
+
+on:
+  push:
+    branches: [ master ]
+  workflow_dispatch:
+    inputs:
+      publish_testpypi:
+        type: boolean
+        required: true
+        description: 'Publish to Test PyPI'
+      publish_pypi:
+        type: boolean
+        required: true
+        description: 'Publish to PyPI (Production)'
+
+jobs:
+  build_and_publish:
+    runs-on: ubuntu-latest
+    name: Build and publish distribution
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Poetry
+        run: pip install poetry
+
+      - name: Build wheel and sdist
+        run: poetry build
+
+      - name: Publish to Test PyPI
+        if: ${{ github.event.inputs.publish_testpypi == 'true' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+          repository-url: https://test.pypi.org/legacy/
+
+      - name: Publish to PyPI
+        if: ${{ github.event.inputs.publish_pypi == 'true' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          password: ${{ secrets.PYPI_API_TOKEN }}
