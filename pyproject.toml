@@ -2,14 +2,17 @@
 name = "aivmlib"
 version = "1.0.0"
 description = "Aivis Voice Model File (.aivm) Utility Library"
+homepage = "https://github.com/Aivis-Project/aivmlib"
+repository = "https://github.com/Aivis-Project/aivmlib"
+documentation = "https://github.com/Aivis-Project/aivmlib"
 authors = ["Aivis Project <support@aivis-project.com>"]
 license = "MIT"
 readme = "Readme.md"
 
 [tool.poetry.dependencies]
-python = ">=3.11,<3.13"
-pydantic = "^2.7.2"
-typer = {extras = ["all"], version = "^0.12.3"}
+python = ">=3.11"
+pydantic = "^2.4.0"
+typer = {extras = ["all"], version = "^0.9.0"}
 
 [build-system]
 requires = ["poetry-core"]
