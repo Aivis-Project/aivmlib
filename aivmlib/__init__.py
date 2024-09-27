@@ -125,7 +125,10 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     # ヘッダー部分を抽出
     header_bytes = array_buffer[8:8 + header_size]
     header_text = header_bytes.decode('utf-8')
-    header_json = json.loads(header_text)
+    try:
+        header_json = json.loads(header_text)
+    except json.JSONDecodeError:
+        raise AivmValidationError('File format is invalid. This file is not an AIVM (Safetensors) file.')
 
     # "__metadata__" キーから AIVM メタデータを取得
     metadata = header_json.get('__metadata__')
@@ -219,7 +222,10 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
     existing_header_size = int.from_bytes(aivm_file_buffer[:8], 'little')
     existing_header_bytes = aivm_file_buffer[8:8 + existing_header_size]
     existing_header_text = existing_header_bytes.decode('utf-8')
-    existing_header = json.loads(existing_header_text)
+    try:
+        existing_header = json.loads(existing_header_text)
+    except json.JSONDecodeError:
+        raise AivmValidationError('File format is invalid. This file is not an AIVM (Safetensors) file.')
 
     # 既存の __metadata__ を取得または新規作成
     existing_metadata = existing_header.get('__metadata__', {})
