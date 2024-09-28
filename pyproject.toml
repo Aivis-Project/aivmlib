@@ -14,6 +14,9 @@ python = ">=3.11"
 pydantic = "^2.4.0"
 typer = {extras = ["all"], version = "^0.9.0"}
 
+[tool.poetry.scripts]
+aivmlib = "aivmlib.__main__:app"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"

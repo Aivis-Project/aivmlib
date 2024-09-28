@@ -13,14 +13,22 @@
 > **[AIVM Generator](https://aivm-generator.aivis-project.com/) では、ブラウザ上の GUI で AIVM ファイルを生成・編集できます。**  
 > 機能的には aivmlib と同じです。手動で AIVM ファイルを生成・編集する際は AIVM Generator の利用をおすすめします。
 
+## Installation
+
+pip でインストールすると、コマンドラインツール `aivmlib` も自動的にインストールされます。
+
+```bash
+pip install aivmlib
+```
+
 ## Usage
 
 以下に CLI ツール自体の使い方を示します。
 
 ```bash
-$ python -m aivmlib --help
+$ aivmlib --help
 
- Usage: python -m aivmlib [OPTIONS] COMMAND [ARGS]...
+ Usage: aivmlib [OPTIONS] COMMAND [ARGS]...
 
  Aivis Voice Model File (.aivm) Utility Library
 
@@ -38,9 +46,9 @@ $ python -m aivmlib --help
 │                 メタデータを見やすく出力する                                      │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
 
-$ python -m aivmlib create-aivm --help
+$ aivmlib create-aivm --help
 
- Usage: python -m aivmlib create-aivm [OPTIONS]
+ Usage: aivmlib create-aivm [OPTIONS]
 
  与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ, スタイルベクトルから
  AIVM メタデータを生成した上で、 それを書き込んだ仮の AIVM ファイルを生成する
@@ -69,9 +77,9 @@ $ python -m aivmlib create-aivm --help
 │                                                          exit.                    │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
 
-$ python -m aivmlib show-metadata --help
+$ aivmlib show-metadata --help
 
- Usage: python -m aivmlib show-metadata [OPTIONS] AIVM_FILE_PATH
+ Usage: aivmlib show-metadata [OPTIONS] AIVM_FILE_PATH
 
  指定されたパスの AIVM ファイル内に記録されている AIVM メタデータを見やすく出力する
 
