@@ -47,6 +47,11 @@ def generate_aivm_metadata(
         AivmMetadata: AIVM メタデータ
     """
 
+    # 引数として受け取った BinaryIO のカーソルを先頭にシーク
+    hyper_parameters_file.seek(0)
+    if style_vectors_file is not None:
+        style_vectors_file.seek(0)
+
     # Style-Bert-VITS2 系の音声合成モデルの場合
     if model_architecture.startswith('Style-Bert-VITS2'):
 
@@ -63,6 +68,10 @@ def generate_aivm_metadata(
         if style_vectors_file is None:
             raise AivmValidationError('Style vectors file is not specified.')
         style_vectors = style_vectors_file.read()
+
+        # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
+        hyper_parameters_file.seek(0)
+        style_vectors_file.seek(0)
 
         # デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
         manifest = DEFAULT_AIVM_MANIFEST.model_copy()
@@ -118,9 +127,15 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
         AivmMetadata: AIVM メタデータ
     """
 
+    # 引数として受け取った BinaryIO のカーソルを先頭にシーク
+    aivm_file.seek(0)
+
     # ファイルの内容を読み込む
     array_buffer = aivm_file.read()
     header_size = int.from_bytes(array_buffer[:8], 'little')
+
+    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
+    aivm_file.seek(0)
 
     # ヘッダー部分を抽出
     header_bytes = array_buffer[8:8 + header_size]
@@ -217,6 +232,9 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
         # スタイルベクトルが存在する場合は Base64 エンコードして追加
         metadata['aivm_style_vectors'] = base64.b64encode(aivm_metadata.style_vectors).decode('utf-8')
 
+    # 引数として受け取った BinaryIO のカーソルを先頭にシーク
+    aivm_file.seek(0)
+
     # AIVM ファイルの内容を一度に読み取る
     aivm_file_buffer = aivm_file.read()
     existing_header_size = int.from_bytes(aivm_file_buffer[:8], 'little')
@@ -226,6 +244,9 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
         existing_header = json.loads(existing_header_text)
     except json.JSONDecodeError:
         raise AivmValidationError('File format is invalid. This file is not an AIVM (Safetensors) file.')
+
+    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
+    aivm_file.seek(0)
 
     # 既存の __metadata__ を取得または新規作成
     existing_metadata = existing_header.get('__metadata__', {})
