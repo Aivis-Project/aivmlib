@@ -208,7 +208,7 @@ class AivmManifestSpeaker(BaseModel):
     # 話者の名前
     name: Annotated[str, constr(min_length=1)]
     # 話者のアイコン画像 (Data URL)
-    # 画像ファイル形式は JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
+    # 画像ファイル形式は 512×512 の JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
     icon: Annotated[str, constr(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')]
     # 話者の対応言語のリスト (ja, en, zh のような ISO 639-1 言語コード)
     supported_languages: list[Annotated[str, constr(min_length=2, max_length=2)]]
@@ -225,7 +225,7 @@ class AivmManifestSpeakerStyle(BaseModel):
     name: Annotated[str, constr(min_length=1)]
     # スタイルのアイコン画像 (Data URL, 省略可能)
     # 省略時は話者のアイコン画像がスタイルのアイコン画像として使われる想定
-    # 画像ファイル形式は JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
+    # 画像ファイル形式は 512×512 の JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
     icon: Annotated[str, constr(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')] | None = None
     # スタイルの ID (この話者内でスタイルを識別するための一意なローカル ID で、uuid とは異なる)
     local_id: Annotated[int, Field(ge=0, le=31)]
