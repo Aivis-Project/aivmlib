@@ -98,7 +98,9 @@ def generate_aivm_metadata(
                 styles = [
                     AivmManifestSpeakerStyle(
                         name = style_name,
+                        icon = None,
                         local_id = style_index,
+                        voice_samples = [],
                     )
                     for style_name, style_index in hyper_parameters.data.style2id.items()
                 ],
