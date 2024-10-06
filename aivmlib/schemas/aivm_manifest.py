@@ -37,6 +37,8 @@ class AivmManifest(BaseModel):
     # 音声合成モデルの説明 (省略時は空文字列になる)
     description: str = ''
     # 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列になる)
+    # カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL へのリンクのみを記述する
+    # 例: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
     terms_of_use: str = ''
     # 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitecture
@@ -54,14 +56,15 @@ class AivmManifestSpeaker(BaseModel):
     """ AIVM マニフェストの話者情報 """
     # 話者の名前
     name: Annotated[str, constr(min_length=1)]
+    # 話者のアイコン画像 (Data URL)
+    # 画像ファイル形式は JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
+    icon: Annotated[str, constr(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')]
     # 話者の対応言語のリスト (ja, en, zh のような ISO 639-1 言語コード)
     supported_languages: list[Annotated[str, constr(min_length=2, max_length=2)]]
     # 話者を一意に識別する UUID
     uuid: UUID
     # 話者のローカル ID (この音声合成モデル内で話者を識別するための一意なローカル ID で、uuid とは異なる)
-    local_id: int = Field(ge=0)
-    # 話者のバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
-    version: Annotated[str, constr(pattern=r'^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')]
+    local_id: Annotated[int, Field(ge=0)]
     # 話者のスタイル情報 (最低 1 つ以上のスタイルが必要)
     styles: list[AivmManifestSpeakerStyle]
 
@@ -69,20 +72,23 @@ class AivmManifestSpeakerStyle(BaseModel):
     """ AIVM マニフェストの話者スタイル情報 """
     # スタイルの名前
     name: Annotated[str, constr(min_length=1)]
-    # スタイルのアイコン画像 (Data URL)
-    # 最初のスタイルのアイコン画像が話者単体のアイコン画像として使用される
-    icon: str
-    # スタイルのボイスサンプル (省略時は空配列になる)
-    voice_samples: list[AivmManifestVoiceSample]
+    # スタイルのアイコン画像 (Data URL, 省略可能)
+    # 省略時は話者のアイコン画像がスタイルのアイコン画像として使われる想定
+    # 画像ファイル形式は JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
+    icon: Annotated[str, constr(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')] | None = None
     # スタイルの ID (この話者内でスタイルを識別するための一意なローカル ID で、uuid とは異なる)
-    local_id: int = Field(ge=0, le=31)
+    local_id: Annotated[int, Field(ge=0, le=31)]
+    # スタイルのボイスサンプル (省略時は空配列になる)
+    voice_samples: list[AivmManifestVoiceSample] = []
 
 class AivmManifestVoiceSample(BaseModel):
     """ AIVM マニフェストのボイスサンプル情報 """
     # ボイスサンプルの音声ファイル (Data URL)
-    audio: str
+    # 音声ファイル形式は WAV (audio/wav, Codec: PCM 16bit)・M4A (audio/mp4, Codec: AAC-LC) のいずれか (M4A を推奨)
+    audio: Annotated[str, constr(pattern=r'^data:audio/(wav|mp4);base64,[A-Za-z0-9+/=]+$')]
     # ボイスサンプルの書き起こし文
-    transcript: str
+    # 書き起こし文は音声ファイルの発話内容と一致している必要がある
+    transcript: Annotated[str, constr(min_length=1)]
 
 
 # デフォルト表示用の AIVM マニフェスト
@@ -97,16 +103,16 @@ DEFAULT_AIVM_MANIFEST = AivmManifest(
     speakers = [
         AivmManifestSpeaker(
             name = 'Speaker Name',
+            icon = DEFAULT_ICON_DATA_URL,
             supported_languages = ['ja'],
             uuid = UUID('00000000-0000-0000-0000-000000000000'),
             local_id = 0,
-            version = '1.0.0',
             styles = [
                 AivmManifestSpeakerStyle(
                     name = 'ノーマル',
-                    icon = DEFAULT_ICON_DATA_URL,
-                    voice_samples = [],
+                    icon = None,
                     local_id = 0,
+                    voice_samples = [],
                 ),
             ],
         ),

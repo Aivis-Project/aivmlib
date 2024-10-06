@@ -76,7 +76,7 @@ def generate_aivm_metadata(
         # デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
         manifest = DEFAULT_AIVM_MANIFEST.model_copy()
         manifest.name = hyper_parameters.model_name
-        # モデルアーキテクチャは Style-Bert-VITS2 系であれば異なる値が指定されても動作するように、ハイパーパラメータの値を使用する
+        # モデルアーキテクチャは Style-Bert-VITS2 系であれば異なる値が指定されても動作するよう、ハイパーパラメータの値を元に設定する
         manifest.model_architecture = ModelArchitecture.StyleBertVITS2JPExtra if hyper_parameters.data.use_jp_extra else ModelArchitecture.StyleBertVITS2
         # モデル UUID はランダムに生成
         manifest.uuid = uuid.uuid4()
@@ -86,19 +86,18 @@ def generate_aivm_metadata(
             AivmManifestSpeaker(
                 # ハイパーパラメータに記載の話者名を使用
                 name = speaker_name,
+                # デフォルトアイコンを使用
+                icon = DEFAULT_ICON_DATA_URL,
                 # JP-Extra の場合は日本語のみ、それ以外は日本語・英語・中国語をサポート
                 supported_languages = ['ja'] if hyper_parameters.data.use_jp_extra else ['ja', 'en', 'zh'],
                 # 話者 UUID はランダムに生成
                 uuid = uuid.uuid4(),
                 # ローカル ID は spk2id の ID の部分を使用
                 local_id = speaker_index,
-                version = '1.0.0',
                 # style2id の内容を反映
                 styles = [
                     AivmManifestSpeakerStyle(
                         name = style_name,
-                        icon = DEFAULT_ICON_DATA_URL,
-                        voice_samples = [],
                         local_id = style_index,
                     )
                     for style_name, style_index in hyper_parameters.data.style2id.items()
