@@ -42,6 +42,10 @@ class AivmManifest(BaseModel):
     terms_of_use: str = ''
     # 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitecture
+    # 音声合成モデル学習時のエポック数 (省略時は None になる)
+    training_epochs: Annotated[int, Field(ge=0)] | None = None
+    # 音声合成モデル学習時のステップ数 (省略時は None になる)
+    training_steps: Annotated[int, Field(ge=0)] | None = None
     # 音声合成モデルを一意に識別する UUID
     uuid: UUID
     # 音声合成モデルのバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
@@ -98,6 +102,8 @@ DEFAULT_AIVM_MANIFEST = AivmManifest(
     description = '',
     terms_of_use = '',
     model_architecture = ModelArchitecture.StyleBertVITS2JPExtra,
+    training_epochs = None,
+    training_steps = None,
     uuid = UUID('00000000-0000-0000-0000-000000000000'),
     version = '1.0.0',
     speakers = [

@@ -196,6 +196,10 @@ class AivmManifest(BaseModel):
     terms_of_use: str = ''
     # 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitecture
+    # 音声合成モデル学習時のエポック数 (省略時は None になる)
+    training_epochs: Annotated[int, Field(ge=0)] | None = None
+    # 音声合成モデル学習時のステップ数 (省略時は None になる)
+    training_steps: Annotated[int, Field(ge=0)] | None = None
     # 音声合成モデルを一意に識別する UUID
     uuid: UUID
     # 音声合成モデルのバージョン (SemVer 2.0 準拠 / ex: 1.0.0)
