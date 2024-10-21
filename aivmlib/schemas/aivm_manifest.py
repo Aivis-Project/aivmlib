@@ -16,9 +16,14 @@ class ModelArchitecture(StrEnum):
     StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'
 
 
+class ModelFormat(StrEnum):
+    Safetensors = 'Safetensors'
+    ONNX = 'ONNX'
+
+
 @dataclass
 class AivmMetadata:
-    """ AIVM ファイルに含まれる全てのメタデータ """
+    """ AIVM / AIVMX ファイルに含まれる全てのメタデータ """
     # AIVM マニフェストの情報
     manifest: AivmManifest
     # ハイパーパラメータの情報
@@ -37,11 +42,14 @@ class AivmManifest(BaseModel):
     # 音声合成モデルの説明 (省略時は空文字列になる)
     description: str = ''
     # 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列になる)
-    # カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL へのリンクのみを記述する
+    # カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL リンクのみを記述する
     # 例: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
     terms_of_use: str = ''
     # 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitecture
+    # 音声合成モデルのモデル形式 (Safetensors または ONNX)
+    # AIVM ファイル (.aivm) のモデル形式は Safetensors 、AIVMX ファイル (.aivmx) のモデル形式は ONNX である
+    model_format: ModelFormat
     # 音声合成モデル学習時のエポック数 (省略時は None になる)
     training_epochs: Annotated[int, Field(ge=0)] | None = None
     # 音声合成モデル学習時のステップ数 (省略時は None になる)
@@ -102,6 +110,7 @@ DEFAULT_AIVM_MANIFEST = AivmManifest(
     description = '',
     terms_of_use = '',
     model_architecture = ModelArchitecture.StyleBertVITS2JPExtra,
+    model_format = ModelFormat.Safetensors,
     training_epochs = None,
     training_steps = None,
     uuid = UUID('00000000-0000-0000-0000-000000000000'),

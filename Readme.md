@@ -1,17 +1,37 @@
 
 # aivmlib
 
-💠 **aivmlib**: **Ai**vis **V**oice **M**odel File (.aivm) Utility **Lib**rary
+💠 **aivmlib**: **Ai**vis **V**oice **M**odel File (.aivm/.aivmx) Utility **Lib**rary
 
-**AIVM** (**Ai**vis **V**oice **M**odel) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。
+**AIVM** (**Ai**vis **V**oice **M**odel) / **AIVMX** (**Ai**vis **V**oice **M**odel for ONN**X**) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。
 
-[AivisSpeech](https://github.com/Aivis-Project/AivisSpeech) / [AivisSpeech-Engine](https://github.com/Aivis-Project/AivisSpeech-Engine) をはじめとした対応ソフトウェアに AIVM ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
+> [!NOTE]  
+> 「AIVM」は、AIVM と AIVMX 両方のフォーマットを包含する仕様の総称でもあります。
 
-このライブラリでは、AIVM ファイルのメタデータを読み書きするためのユーティリティを提供します。  
+[AivisSpeech](https://github.com/Aivis-Project/AivisSpeech) / [AivisSpeech-Engine](https://github.com/Aivis-Project/AivisSpeech-Engine) をはじめとした AIVM 仕様に対応したソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
+
+このライブラリでは、AIVM / AIVMX ファイルのメタデータを読み書きするためのユーティリティを提供します。  
+この Readme の後半では、aivmlib で対応している各 AIVM 仕様についても説明しています。
 
 > [!TIP]  
-> **[AIVM Generator](https://aivm-generator.aivis-project.com/) では、ブラウザ上の GUI で AIVM ファイルを生成・編集できます。**  
-> 機能的には aivmlib と同じです。手動で AIVM ファイルを生成・編集する際は AIVM Generator の利用をおすすめします。
+> **[AIVM Generator](https://aivm-generator.aivis-project.com/) では、ブラウザ上の GUI で AIVM / AIVMX ファイルを生成・編集できます。**  
+> 機能的には aivmlib の上位互換です。手動で AIVM / AIVMX ファイルを生成・編集する際は AIVM Generator の利用をおすすめします。
+
+- [aivmlib](#aivmlib)
+  - [Installation](#installation)
+  - [Usage](#usage)
+  - [License](#license)
+- [AIVM Specifications](#aivm-specifications)
+  - [AIVM File Format Specification](#aivm-file-format-specification)
+    - [概要](#概要)
+    - [Safetensors 形式との互換性](#safetensors-形式との互換性)
+    - [参考資料](#参考資料)
+  - [AIVMX File Format Specification](#aivmx-file-format-specification)
+    - [概要](#概要-1)
+    - [ONNX 形式との互換性](#onnx-形式との互換性)
+  - [AIVM Manifest Specification (Version 1.0)](#aivm-manifest-specification-version-10)
+    - [サポートされるモデルアーキテクチャ](#サポートされるモデルアーキテクチャ)
+    - [AIVM マニフェストのフィールド定義](#aivm-マニフェストのフィールド定義)
 
 ## Installation
 
@@ -92,15 +112,30 @@ $ aivmlib show-metadata --help
 ```
 
 > [!TIP]  
-> ライブラリとしての使い方は、[`__main__.py`](aivmlib/__main__.py) に実装されている CLI ツールの実装を参照してください。  
+> **ライブラリとしての使い方は、[`__main__.py`](aivmlib/__main__.py) に実装されている CLI ツールの実装を参照してください。**
 
 > [!IMPORTANT]  
-> aivmlib は、AIVM ファイルフォーマットの読み込み/書き込み機能のみを有するライブラリです。  
+> **aivmlib は、AIVM ファイルフォーマットの読み込み/書き込み機能のみを有するライブラリです。**  
 > 各モデルアーキテクチャごとの AI 音声合成モデルの推論ロジックや、aivmlib から取得したデータをどのようにユーザーに提示するかは、すべてライブラリの利用者に委ねられています。
+
+## License
+
+[MIT License](License.txt)
+
+<br>
+
+# AIVM Specifications
+
+このセクションでは、「AIVM 仕様」に含まれる、下記の技術仕様を定義する。
+
+<!-- no toc -->
+- [AIVM File Format Specification](#aivm-file-format-specification)
+- [AIVMX File Format Specification](#aivmx-file-format-specification)
+- [AIVM Manifest Specification (Version 1.0)](#aivm-manifest-specification-version-10)
 
 ## AIVM File Format Specification
 
-以下に AIVM ファイルフォーマットの仕様を示す。
+以下に、AIVM ファイルフォーマットの仕様を示す。
 
 **AIVM** (**Ai**vis **V**oice **M**odel) は、[Safetensors](https://github.com/huggingface/safetensors) (.safetensors) 形式で保存された学習済み AI 音声合成モデルのヘッダー領域の中に、カスタムメタデータとして話者メタデータ ([AIVM マニフェスト](#aivm-manifest-specification-version-10)) ・ハイパーパラメータ・スタイルベクトルといった各種情報を格納した、Safetensors 形式の拡張仕様である。  
 「AI 音声合成モデル向けの、Safetensors 形式の共通メタデータ記述仕様」とも言える。
@@ -144,13 +179,28 @@ Safetensors のヘッダー JSON にはテンソルのオフセット等が格�
 - [Safetensors](https://github.com/huggingface/safetensors)
 - [Safetensors Metadata Parsing](https://huggingface.co/docs/safetensors/main/en/metadata_parsing)
 
+## AIVMX File Format Specification
+
+以下に、AIVMX ファイルフォーマットの仕様を示す。
+
+**AIVMX** (**Ai**vis **V**oice **M**odel for ONN**X**) は、[ONNX](https://onnx.ai/) 形式で保存された学習済み AI 音声合成モデルのヘッダー領域の中に、カスタムメタデータとして話者メタデータ ([AIVM マニフェスト](#aivm-manifest-specification-version-10)) ・ハイパーパラメータ・スタイルベクトルといった各種情報を格納した、ONNX 形式の拡張仕様である。  
+「AI 音声合成モデル向けの、ONNX 形式の共通メタデータ記述仕様」とも言える。
+
+### 概要
+
+執筆中...
+
+### ONNX 形式との互換性
+
+執筆中...
+
 ## AIVM Manifest Specification (Version 1.0)
 
-以下に AIVM ファイルフォーマットに含まれる、AIVM マニフェスト (Version 1.0) の仕様を示す。
+以下に、AIVM ファイルフォーマットに含まれる、AIVM マニフェスト (Version 1.0) の仕様を示す。
 
-AIVM マニフェストは、JSON フォーマットで記述された UTF-8 文字列である。
+**AIVM マニフェストには、マニフェストバージョン (= AIVM ファイルバージョン)・モデルアーキテクチャ・モデル名・話者メタデータ・スタイル情報などの、音声合成モデルの利用に必要となる様々な情報が含まれる。**
 
-**AIVM マニフェストには、マニフェストバージョン (= AIVM ファイルバージョン)・モデルアーキテクチャ・モデル名・話者メタデータ・スタイル情報などの、音声合成モデルの利用に必要となる様々な情報が含まれる。**  
+AIVM マニフェストのデータ形式は、JSON フォーマットで記述された UTF-8 文字列である。  
 JSON フォーマットの都合上、画像や音声データは Base64 エンコードされた文字列で格納される。
 
 ### サポートされるモデルアーキテクチャ
@@ -163,7 +213,7 @@ JSON フォーマットの都合上、画像や音声データは Base64 エン�
 > たとえば `Style-Bert-VITS2 (JP-Extra)` 以外のモデルアーキテクチャをサポートしないソフトウェアでは、`Style-Bert-VITS2` モデルアーキテクチャの AIVM ファイルのインストールを求められた際に「このモデルアーキテクチャには対応していません」とアラートを表示し、インストールを中止するよう実装すべき。
 
 > [!IMPORTANT]  
-> **技術的には上記以外のモデルアーキテクチャの音声合成モデルも格納できますが、AIVM マニフェスト (Version 1.0) 仕様で公式に定義されているモデルアーキテクチャ文字列は上記のみ。**  
+> **技術的には上記以外のモデルアーキテクチャの音声合成モデルも格納可能だが、AIVM マニフェスト (Version 1.0) 仕様で公式に定義されているモデルアーキテクチャ文字列は上記のみ。**  
 > 独自にモデルアーキテクチャ文字列を定義する場合は、既存のモデルアーキテクチャとの名前衝突や異なるソフト間での表記揺れが発生しないよう、細心の注意を払う必要がある。  
 > なるべくこのリポジトリにプルリクエストを送信し、公式に AIVM 仕様に新しいモデルアーキテクチャのサポートを追加する形を取ることを推奨する。
 
@@ -181,6 +231,10 @@ class ModelArchitecture(StrEnum):
     StyleBertVITS2 = 'Style-Bert-VITS2'
     StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'
 
+class ModelFormat(StrEnum):
+    Safetensors = 'Safetensors'
+    ONNX = 'ONNX'
+
 class AivmManifest(BaseModel):
     """ AIVM マニフェストのスキーマ """
     # AIVM マニフェストのバージョン (ex: 1.0)
@@ -191,11 +245,14 @@ class AivmManifest(BaseModel):
     # 音声合成モデルの説明 (省略時は空文字列になる)
     description: str = ''
     # 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列になる)
-    # カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL へのリンクのみを記述する
+    # カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL リンクのみを記述する
     # 例: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
     terms_of_use: str = ''
     # 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitecture
+    # 音声合成モデルのモデル形式 (Safetensors または ONNX)
+    # AIVM ファイル (.aivm) のモデル形式は Safetensors 、AIVMX ファイル (.aivmx) のモデル形式は ONNX である
+    model_format: ModelFormat
     # 音声合成モデル学習時のエポック数 (省略時は None になる)
     training_epochs: Annotated[int, Field(ge=0)] | None = None
     # 音声合成モデル学習時のステップ数 (省略時は None になる)
@@ -245,7 +302,3 @@ class AivmManifestVoiceSample(BaseModel):
     # 書き起こし文は音声ファイルの発話内容と一致している必要がある
     transcript: Annotated[str, constr(min_length=1)]
 ```
-
-## License
-
-[MIT License](License.txt)
