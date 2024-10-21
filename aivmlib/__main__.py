@@ -35,6 +35,7 @@ def show_metadata(
                 metadata = read_aivm_metadata(file)
 
             for speaker in metadata.manifest.speakers:
+                speaker.icon = '(Image Base64 DataURL)'
                 for style in speaker.styles:
                     style.icon = '(Image Base64 DataURL)'
                     for sample in style.voice_samples:
