@@ -12,7 +12,7 @@
 
 [AivisSpeech](https://github.com/Aivis-Project/AivisSpeech) / [AivisSpeech-Engine](https://github.com/Aivis-Project/AivisSpeech-Engine) をはじめとした AIVM 仕様に対応したソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
 
-**この aivmlib ライブラリでは、AIVM / AIVMX ファイル内のメタデータを読み書きするためのユーティリティを提供します。**  
+**aivmlib では、AIVM / AIVMX ファイル内のメタデータを読み書きするためのユーティリティを提供します。**  
 この Readme の後半では、aivmlib で対応している各 AIVM 仕様についても説明しています。
 
 > [!TIP]  
@@ -177,7 +177,7 @@ $ aivmlib create-aivmx --help
 **AIVM 仕様は、音声合成モデルのモデルアーキテクチャに依存しない。**  
 異なるモデルアーキテクチャの音声合成モデルを共通のファイルフォーマットで扱えるよう、拡張性や汎用性を考慮して設計されている。
 
-大元の学習済みモデルが Safetensors または ONNX 形式で保存されているならば、原則どのようなモデルアーキテクチャであっても、メタデータを追加して AIVM / AIVMX ファイルを生成できる。  
+大元の学習済みモデルが単一の Safetensors または ONNX 形式で保存されているならば、原則どのようなモデルアーキテクチャであっても、メタデータを追加して AIVM / AIVMX ファイルを生成できる。  
 設計にあたっては、変換処理を挟むことなく通常の Safetensors ファイルや ONNX ファイルとしてロードできるよう、既存エコシステムとの互換性を重視した。
 
 > [!IMPORTANT]  
