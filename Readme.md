@@ -334,7 +334,7 @@ class AivmManifestSpeakerStyle(BaseModel):
     # 画像ファイル形式は 512×512 の JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
     icon: Annotated[str, constr(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')] | None = None
     # スタイルの ID (この話者内でスタイルを識別するための一意なローカル ID で、uuid とは異なる)
-    local_id: Annotated[int, Field(ge=0, le=31)]
+    local_id: Annotated[int, Field(ge=0, le=31)]  # 最大 32 スタイルまでサポート
     # スタイルのボイスサンプル (省略時は空配列になる)
     voice_samples: list[AivmManifestVoiceSample] = []
 
