@@ -200,17 +200,17 @@ Safetensors 形式の拡張仕様のため、そのまま通常の Safetensors �
 Safetensors 同様、先頭 8bytes の符号なし Little-Endian 64bit 整数がヘッダーサイズ、その後ろにヘッダーサイズの長さだけ UTF-8 の JSON 文字列が続く。  
 Safetensors のヘッダー JSON にはテンソルのオフセット等が格納されているが、`__metadata__` キーには string から string への map を自由に設定可能な仕様である。
 
-この仕様を活用し、AIVM は `__metadata__` 内の以下のキーに次のデータを JSON 文字列にシリアライズして格納する。
+この仕様を活用し、AIVM は `__metadata__` 内の以下のキーに、次のデータを JSON 文字列にシリアライズした上で格納する。
 
 - **`aivm_manifest` : [AIVM マニフェスト](#aivm-manifest-specification-version-10)**
-  - JSON 文字列で格納される
+  - JSON 文字列として格納される
   - マニフェストバージョンや話者メタデータを含む大半の情報が含まれる
 - **`aivm_hyper_parameters` : 音声合成モデルのハイパーパラメータ**
   - 格納フォーマットはモデルアーキテクチャ依存
-  - `Style-Bert-VITS2`・`Style-Bert-VITS2 (JP-Extra)` モデルアーキテクチャでは JSON 文字列で格納される
+  - `Style-Bert-VITS2`・`Style-Bert-VITS2 (JP-Extra)` モデルアーキテクチャでは JSON 文字列が格納される
 - **`aivm_style_vectors` : Base64 エンコードされた音声合成モデルのスタイルベクトル (バイナリ)**
   - Base64 デコード後のフォーマットはモデルアーキテクチャ依存
-  - `Style-Bert-VITS2`・`Style-Bert-VITS2 (JP-Extra)` モデルアーキテクチャでは NumPy 配列 (.npy) を Base64 エンコードした文字列で格納される
+  - `Style-Bert-VITS2`・`Style-Bert-VITS2 (JP-Extra)` モデルアーキテクチャでは NumPy 配列 (.npy) を Base64 エンコードした文字列が格納される
   - モデルアーキテクチャ次第では省略されうる
 
 ### 参考文献
