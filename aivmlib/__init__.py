@@ -17,17 +17,8 @@ from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 
 
-# AIVM は、Safetensors 形式の学習済み音声合成モデルのヘッダー領域の中に、カスタムメタデータとして
-# 話者メタデータ・ハイパーパラメータ・スタイルベクトルといった各種情報を JSON 文字列として格納したファイルフォーマットである。
-# Safetensors 形式の拡張仕様のため、そのまま通常の Safetensors ファイルとしてロードできる。
-# Safetensors 同様、先頭 8bytes の符号なし Little-Endian 64bit 整数がヘッダーサイズ、その後ろにヘッダーサイズの長さだけ UTF-8 の JSON 文字列が続く。
-# Safetensors のヘッダー JSON にはテンソルのオフセット等が格納されているが、"__metadata__" キーには string から string への map を自由に設定可能な仕様である。
-# この仕様を活用し、AIVM は "__metadata__" 内の以下のキーに次のデータを JSON シリアライズして格納する。
-# - "aivm_manifest": AIVM マニフェスト (マニフェストバージョンや話者メタデータを含む大半の情報が含まれる)
-# - "aivm_hyper_parameters": ハイパーパラメータ (フォーマットはモデルアーキテクチャの実装依存)
-# - "aivm_style_vectors": Base64 エンコードされたスタイルベクトル (フォーマットはモデルアーキテクチャの実装依存 / モデルアーキテクチャ次第では省略されうる)
-# ref: https://github.com/huggingface/safetensors
-# ref: https://huggingface.co/docs/safetensors/main/en/metadata_parsing
+# AIVM / AIVMX ファイルフォーマットの仕様は下記ドキュメントを参照のこと
+# ref: https://github.com/Aivis-Project/aivmlib#aivm-specifications
 
 
 def generate_aivm_metadata(
