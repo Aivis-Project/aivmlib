@@ -10,6 +10,7 @@ license = "MIT"
 readme = "Readme.md"
 
 [tool.poetry.dependencies]
+onnx = "^1.17.0"
 python = ">=3.11"
 pydantic = "^2.4.0"
 typer = {extras = ["all"], version = "^0.9.0"}

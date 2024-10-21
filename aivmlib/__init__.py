@@ -1,7 +1,10 @@
 import base64
 import json
+import onnx
+import onnx.onnx_pb
 import traceback
 import uuid
+from google.protobuf.message import DecodeError
 from pydantic import ValidationError
 from typing import BinaryIO
 
@@ -12,6 +15,7 @@ from aivmlib.schemas.aivm_manifest import (
     AivmManifestSpeakerStyle,
     DEFAULT_AIVM_MANIFEST,
     ModelArchitecture,
+    ModelFormat,
 )
 from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
@@ -36,6 +40,9 @@ def generate_aivm_metadata(
 
     Returns:
         AivmMetadata: AIVM メタデータ
+
+    Raises:
+        AivmValidationError: ハイパーパラメータのフォーマットが不正・スタイルベクトルが未指定・サポートされていないモデルアーキテクチャの場合
     """
 
     # 引数として受け取った BinaryIO のカーソルを先頭にシーク
@@ -68,7 +75,10 @@ def generate_aivm_metadata(
         manifest = DEFAULT_AIVM_MANIFEST.model_copy()
         manifest.name = hyper_parameters.model_name
         # モデルアーキテクチャは Style-Bert-VITS2 系であれば異なる値が指定されても動作するよう、ハイパーパラメータの値を元に設定する
-        manifest.model_architecture = ModelArchitecture.StyleBertVITS2JPExtra if hyper_parameters.data.use_jp_extra else ModelArchitecture.StyleBertVITS2
+        if hyper_parameters.data.use_jp_extra:
+            manifest.model_architecture = ModelArchitecture.StyleBertVITS2JPExtra
+        else:
+            manifest.model_architecture = ModelArchitecture.StyleBertVITS2
         # モデル UUID はランダムに生成
         manifest.uuid = uuid.uuid4()
 
@@ -101,12 +111,68 @@ def generate_aivm_metadata(
         ]
 
         return AivmMetadata(
-            manifest=manifest,
-            hyper_parameters=hyper_parameters,
-            style_vectors=style_vectors,
+            manifest = manifest,
+            hyper_parameters = hyper_parameters,
+            style_vectors = style_vectors,
         )
 
     raise AivmValidationError(f"Unsupported model architecture: {model_architecture}.")
+
+
+def validate_aivm_metadata(raw_metadata: dict[str, str]) -> AivmMetadata:
+    """
+    AIVM メタデータをバリデーションする
+
+    Args:
+        raw_metadata (dict[str, str]): 辞書形式の生のメタデータ
+
+    Returns:
+        AivmMetadata: バリデーションが完了した AIVM メタデータ
+
+    Raises:
+        AivmValidationError: AIVM メタデータのバリデーションに失敗した場合
+    """
+
+    # AIVM マニフェストが存在しない場合
+    if not raw_metadata or not raw_metadata.get('aivm_manifest'):
+        raise AivmValidationError('AIVM manifest not found.')
+
+    # AIVM マニフェストのバリデーション
+    try:
+        aivm_manifest = AivmManifest.model_validate_json(raw_metadata['aivm_manifest'])
+    except ValidationError:
+        traceback.print_exc()
+        raise AivmValidationError('Invalid AIVM manifest format.')
+
+    # ハイパーパラメータのバリデーション
+    if 'aivm_hyper_parameters' in raw_metadata:
+        try:
+            if aivm_manifest.model_architecture.startswith('Style-Bert-VITS2'):
+                aivm_hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(raw_metadata['aivm_hyper_parameters'])
+            else:
+                raise AivmValidationError(f"Unsupported hyper-parameters for model architecture: {aivm_manifest.model_architecture}.")
+        except ValidationError:
+            traceback.print_exc()
+            raise AivmValidationError('Invalid hyper-parameters format.')
+    else:
+        raise AivmValidationError('Hyper-parameters not found.')
+
+    # スタイルベクトルのデコード
+    aivm_style_vectors = None
+    if 'aivm_style_vectors' in raw_metadata:
+        try:
+            base64_string = raw_metadata['aivm_style_vectors']
+            aivm_style_vectors = base64.b64decode(base64_string)
+        except Exception:
+            traceback.print_exc()
+            raise AivmValidationError('Failed to decode style vectors.')
+
+    # AivmMetadata オブジェクトを構築して返す
+    return AivmMetadata(
+        manifest = aivm_manifest,
+        hyper_parameters = aivm_hyper_parameters,
+        style_vectors = aivm_style_vectors,
+    )
 
 
 def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
@@ -118,6 +184,9 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
 
     Returns:
         AivmMetadata: AIVM メタデータ
+
+    Raises:
+        AivmValidationError: AIVM ファイルのフォーマットが不正・AIVM メタデータのバリデーションに失敗した場合
     """
 
     # 引数として受け取った BinaryIO のカーソルを先頭にシーク
@@ -136,48 +205,47 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     try:
         header_json = json.loads(header_text)
     except json.JSONDecodeError:
-        raise AivmValidationError('File format is invalid. This file is not an AIVM (Safetensors) file.')
+        raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVM (Safetensors) file.')
 
     # "__metadata__" キーから AIVM メタデータを取得
-    metadata = header_json.get('__metadata__')
-    if not metadata or not metadata.get('aivm_manifest'):
-        raise AivmValidationError('AIVM manifest not found.')
+    raw_metadata = header_json.get('__metadata__')
 
-    # AIVM マニフェストをパースしてバリデーション
+    # バリデーションを行った上で、AivmMetadata オブジェクトを構築して返す
+    return validate_aivm_metadata(raw_metadata)
+
+
+def read_aivmx_metadata(aivmx_file: BinaryIO) -> AivmMetadata:
+    """
+    AIVMX ファイルから AIVM メタデータを読み込む
+
+    Args:
+        aivmx_file (BinaryIO): AIVMX ファイル
+
+    Returns:
+        AivmMetadata: AIVM メタデータ
+
+    Raises:
+        AivmValidationError: AIVMX ファイルのフォーマットが不正・AIVM メタデータのバリデーションに失敗した場合
+    """
+
+    # 引数として受け取った BinaryIO のカーソルを先頭にシーク
+    aivmx_file.seek(0)
+
+    # ONNX モデル (Protobuf) をロード
     try:
-        aivm_manifest = AivmManifest.model_validate_json(metadata['aivm_manifest'])
-    except ValidationError:
+        model = onnx.load_model(aivmx_file)
+    except DecodeError:
         traceback.print_exc()
-        raise AivmValidationError('Invalid AIVM manifest format.')
+        raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVMX (ONNX) file.')
 
-    # ハイパーパラメータのバリデーション
-    if 'aivm_hyper_parameters' in metadata:
-        try:
-            if aivm_manifest.model_architecture.startswith('Style-Bert-VITS2'):
-                aivm_hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(metadata['aivm_hyper_parameters'])
-            else:
-                raise AivmValidationError(f"Unsupported hyper-parameters for model architecture: {aivm_manifest.model_architecture}.")
-        except ValidationError:
-            traceback.print_exc()
-            raise AivmValidationError('Invalid hyper-parameters format.')
-    else:
-        raise AivmValidationError('Hyper-parameters not found.')
+    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
+    aivmx_file.seek(0)
 
-    # スタイルベクトルのデコード
-    aivm_style_vectors = None
-    if 'aivm_style_vectors' in metadata:
-        try:
-            base64_string = metadata['aivm_style_vectors']
-            aivm_style_vectors = base64.b64decode(base64_string)
-        except Exception:
-            traceback.print_exc()
-            raise AivmValidationError('Failed to decode style vectors.')
+    # AIVM メタデータを取得
+    raw_metadata = {prop.key: prop.value for prop in model.metadata_props}
 
-    return AivmMetadata(
-        manifest=aivm_manifest,
-        hyper_parameters=aivm_hyper_parameters,
-        style_vectors=aivm_style_vectors,
-    )
+    # バリデーションを行った上で、AivmMetadata オブジェクトを構築して返す
+    return validate_aivm_metadata(raw_metadata)
 
 
 def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> bytes:
@@ -189,30 +257,19 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
         aivm_metadata (AivmMetadata): AIVM メタデータ
 
     Returns:
-        bytes: 書き込みが完了した AIVM or (メタデータが書き込まれていない素の Safetensors) ファイルのバイト列
+        bytes: 書き込みが完了した AIVM ファイルのバイト列
+
+    Raises:
+        AivmValidationError: AIVM ファイルのフォーマットが不正・スタイルベクトルが未指定の場合
     """
 
-    # Style-Bert-VITS2 系の音声合成モデルでは、AIVM マニフェストの内容をハイパーパラメータにも反映する
-    if aivm_metadata.manifest.model_architecture.startswith('Style-Bert-VITS2'):
+    # モデル形式を Safetensors に設定
+    # AIVM ファイルのモデル形式は Safetensors のため、AIVM マニフェストにも明示的に反映する
+    aivm_metadata.manifest.model_format = ModelFormat.Safetensors
 
-        # スタイルベクトルが設定されていなければエラー
-        if aivm_metadata.style_vectors is None:
-            raise AivmValidationError('Style vectors are not set.')
-
-        # モデル名を反映
-        aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name
-
-        # 環境依存のパスが含まれるため、training_files と validation_files は固定値に変更
-        aivm_metadata.hyper_parameters.data.training_files = 'train.list'
-        aivm_metadata.hyper_parameters.data.validation_files = 'val.list'
-
-        # 話者名を反映
-        new_spk2id = {speaker.name: speaker.local_id for speaker in aivm_metadata.manifest.speakers}
-        aivm_metadata.hyper_parameters.data.spk2id = new_spk2id
-
-        # スタイル名を反映
-        new_style2id = {style.name: style.local_id for speaker in aivm_metadata.manifest.speakers for style in speaker.styles}
-        aivm_metadata.hyper_parameters.data.style2id = new_style2id
+    # AIVM マニフェストの内容をハイパーパラメータにも反映する
+    # 結果は AivmMetadata オブジェクトに直接 in-place で反映される
+    apply_aivm_manifest_to_hyper_parameters(aivm_metadata)
 
     # AIVM メタデータをシリアライズ
     # Safetensors のメタデータ領域はネストなしの string から string への map でなければならないため、
@@ -236,7 +293,7 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
     try:
         existing_header = json.loads(existing_header_text)
     except json.JSONDecodeError:
-        raise AivmValidationError('File format is invalid. This file is not an AIVM (Safetensors) file.')
+        raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVM (Safetensors) file.')
 
     # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
     aivm_file.seek(0)
@@ -262,8 +319,100 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
     return new_aivm_file_content
 
 
+def write_aivmx_metadata(aivmx_file: BinaryIO, aivm_metadata: AivmMetadata) -> bytes:
+    """
+    AIVM メタデータを AIVMX ファイルに書き込む
+
+    Args:
+        aivmx_file (BinaryIO): AIVMX ファイル
+        aivm_metadata (AivmMetadata): AIVM メタデータ
+
+    Returns:
+        bytes: 書き込みが完了した AIVMX ファイルのバイト列
+
+    Raises:
+        AivmValidationError: AIVMX ファイルのフォーマットが不正・スタイルベクトルが未指定の場合
+    """
+
+    # モデル形式を ONNX に設定
+    # AIVMX ファイルのモデル形式は ONNX のため、AIVM マニフェストにも明示的に反映する
+    aivm_metadata.manifest.model_format = ModelFormat.ONNX
+
+    # AIVM マニフェストの内容をハイパーパラメータにも反映する
+    # 結果は AivmMetadata オブジェクトに直接 in-place で反映される
+    apply_aivm_manifest_to_hyper_parameters(aivm_metadata)
+
+    # 引数として受け取った BinaryIO のカーソルを先頭にシーク
+    aivmx_file.seek(0)
+
+    # ONNX モデル (Protobuf) をロード
+    try:
+        model = onnx.load_model(aivmx_file)
+    except DecodeError:
+        traceback.print_exc()
+        raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVMX (ONNX) file.')
+
+    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
+    aivmx_file.seek(0)
+
+    # AIVM メタデータをシリアライズ
+    # ONNX のメタデータ領域はネストなしの string から string への key-value でなければならないため、
+    # すべてのメタデータを文字列にシリアライズして格納する
+    metadata = {
+        'aivm_manifest': aivm_metadata.manifest.model_dump_json(),
+        'aivm_hyper_parameters': aivm_metadata.hyper_parameters.model_dump_json(),
+    }
+    if aivm_metadata.style_vectors is not None:
+        # スタイルベクトルが存在する場合は Base64 エンコードして追加
+        metadata['aivm_style_vectors'] = base64.b64encode(aivm_metadata.style_vectors).decode('utf-8')
+
+    # メタデータを ONNX モデルに追加
+    for key, value in metadata.items():
+        model.metadata_props.append(onnx.StringStringEntryProto(key=key, value=value))
+
+    # 新しい AIVMX ファイルの内容をシリアライズ
+    new_aivmx_file_content = model.SerializeToString()
+
+    return new_aivmx_file_content
+
+
+def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None:
+    """
+    AIVM マニフェストの内容をハイパーパラメータにも反映する
+    結果は AivmMetadata オブジェクトに直接 in-place で反映される
+
+    Args:
+        aivm_metadata (AivmMetadata): AIVM メタデータ
+
+    Raises:
+        AivmValidationError: スタイルベクトルが未指定の場合
+    """
+
+    # Style-Bert-VITS2 系の音声合成モデルの場合
+    if aivm_metadata.manifest.model_architecture.startswith('Style-Bert-VITS2'):
+
+        # スタイルベクトルが設定されていなければエラー
+        if aivm_metadata.style_vectors is None:
+            raise AivmValidationError('Style vectors are not set.')
+
+        # モデル名を反映
+        aivm_metadata.hyper_parameters.model_name = aivm_metadata.manifest.name
+
+        # 環境依存のパスが含まれるため、training_files と validation_files は固定値に変更
+        aivm_metadata.hyper_parameters.data.training_files = 'train.list'
+        aivm_metadata.hyper_parameters.data.validation_files = 'val.list'
+
+        # 話者名を反映
+        new_spk2id = {speaker.name: speaker.local_id for speaker in aivm_metadata.manifest.speakers}
+        aivm_metadata.hyper_parameters.data.spk2id = new_spk2id
+
+        # スタイル名を反映
+        new_style2id = {style.name: style.local_id for speaker in aivm_metadata.manifest.speakers for style in speaker.styles}
+        aivm_metadata.hyper_parameters.data.style2id = new_style2id
+
+
 class AivmValidationError(Exception):
     """
-    AIVM ファイルの読み取り中にエラーが発生したときに発生する例外
+    AIVM / AIVMX ファイルの読み取り中にエラーが発生したときに発生する例外
     """
     pass

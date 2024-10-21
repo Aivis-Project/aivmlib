@@ -3,14 +3,16 @@
 
 💠 **aivmlib**: **Ai**vis **V**oice **M**odel File (.aivm/.aivmx) Utility **Lib**rary
 
-**AIVM** (**Ai**vis **V**oice **M**odel) / **AIVMX** (**Ai**vis **V**oice **M**odel for ONN**X**) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前 / 概要 / アイコン / ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。
+**AIVM** (**Ai**vis **V**oice **M**odel) / **AIVMX** (**Ai**vis **V**oice **M**odel for ONN**X**) は、学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマットです。
 
 > [!NOTE]  
-> 「AIVM」は、AIVM と AIVMX 両方のフォーマットを包含する仕様の総称でもあります。
+> **「AIVM」は、AIVM / AIVMX 両方のフォーマット仕様・メタデータ仕様の総称でもあります。**  
+> 具体的には、AIVM ファイルは「AIVM メタデータを追加した Safetensors 形式」、AIVMX ファイルは「AIVM メタデータを追加した ONNX 形式」のモデルファイルです。  
+> 「AIVM メタデータ」とは、AIVM 仕様に定義されている、学習済みモデルに紐づく各種メタデータのことをいいます。
 
 [AivisSpeech](https://github.com/Aivis-Project/AivisSpeech) / [AivisSpeech-Engine](https://github.com/Aivis-Project/AivisSpeech-Engine) をはじめとした AIVM 仕様に対応したソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
 
-このライブラリでは、AIVM / AIVMX ファイルのメタデータを読み書きするためのユーティリティを提供します。  
+**この aivmlib ライブラリでは、AIVM / AIVMX ファイル内のメタデータを読み書きするためのユーティリティを提供します。**  
 この Readme の後半では、aivmlib で対応している各 AIVM 仕様についても説明しています。
 
 > [!TIP]  
@@ -22,13 +24,13 @@
   - [Usage](#usage)
   - [License](#license)
 - [AIVM Specifications](#aivm-specifications)
+  - [Overview](#overview)
   - [AIVM File Format Specification](#aivm-file-format-specification)
-    - [概要](#概要)
     - [Safetensors 形式との互換性](#safetensors-形式との互換性)
     - [参考資料](#参考資料)
   - [AIVMX File Format Specification](#aivmx-file-format-specification)
-    - [概要](#概要-1)
     - [ONNX 形式との互換性](#onnx-形式との互換性)
+    - [参考資料](#参考資料-1)
   - [AIVM Manifest Specification (Version 1.0)](#aivm-manifest-specification-version-10)
     - [サポートされるモデルアーキテクチャ](#サポートされるモデルアーキテクチャ)
     - [AIVM マニフェストのフィールド定義](#aivm-マニフェストのフィールド定義)
@@ -59,11 +61,28 @@ $ aivmlib --help
 │ --help                        Show this message and exit.                         │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ────────────────────────────────────────────────────────────────────────╮
-│ create-aivm     与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ,     │
-│                 スタイルベクトルから AIVM メタデータを生成した上で、              │
-│                 それを書き込んだ仮の AIVM ファイルを生成する                      │
-│ show-metadata   指定されたパスの AIVM ファイル内に記録されている AIVM             │
-│                 メタデータを見やすく出力する                                      │
+│ create-aivm    与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ,      │
+│                スタイルベクトルから AIVM メタデータを生成した上で、               │
+│                それを書き込んだ仮の AIVM ファイルを生成する                       │
+│ create-aivmx   与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ,      │
+│                スタイルベクトルから AIVM メタデータを生成した上で、               │
+│                それを書き込んだ仮の AIVMX ファイルを生成する                      │
+│ show-metadata  指定されたパスの AIVM / AIVMX ファイル内に記録されている AIVM      │
+│                メタデータを見やすく出力する                                       │
+╰───────────────────────────────────────────────────────────────────────────────────╯
+
+$ aivmlib show-metadata --help
+
+ Usage: aivmlib show-metadata [OPTIONS] FILE_PATH
+
+ 指定されたパスの AIVM / AIVMX ファイル内に記録されている AIVM メタデータを見やすく出力する
+
+╭─ Arguments ───────────────────────────────────────────────────────────────────────╮
+│ *    file_path      PATH  Path to the AIVM / AIVMX file [default: None]           │
+│                           [required]                                              │
+╰───────────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ─────────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                       │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
 
 $ aivmlib create-aivm --help
@@ -71,7 +90,7 @@ $ aivmlib create-aivm --help
  Usage: aivmlib create-aivm [OPTIONS]
 
  与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ, スタイルベクトルから
- AIVM メタデータを生成した上で、 それを書き込んだ仮の AIVM ファイルを生成する
+ AIVM メタデータを生成した上で、それを書き込んだ仮の AIVM ファイルを生成する
 
 ╭─ Options ─────────────────────────────────────────────────────────────────────────╮
 │ *  --output              -o      PATH                    Path to the output AIVM  │
@@ -97,17 +116,35 @@ $ aivmlib create-aivm --help
 │                                                          exit.                    │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
 
-$ aivmlib show-metadata --help
+$ aivmlib create-aivmx --help
 
- Usage: aivmlib show-metadata [OPTIONS] AIVM_FILE_PATH
+ Usage: aivmlib create-aivmx [OPTIONS]
 
- 指定されたパスの AIVM ファイル内に記録されている AIVM メタデータを見やすく出力する
+ 与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ, スタイルベクトルから
+ AIVM メタデータを生成した上で、それを書き込んだ仮の AIVMX ファイルを生成する
 
-╭─ Arguments ───────────────────────────────────────────────────────────────────────╮
-│ *    aivm_file_path      PATH  Path to the AIVM file [default: None] [required]   │
-╰───────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Options ─────────────────────────────────────────────────────────────────────────╮
-│ --help          Show this message and exit.                                       │
+│ *  --output              -o      PATH                    Path to the output AIVMX │
+│                                                          file                     │
+│                                                          [default: None]          │
+│                                                          [required]               │
+│ *  --model               -m      PATH                    Path to the ONNX model   │
+│                                                          file                     │
+│                                                          [default: None]          │
+│                                                          [required]               │
+│ *  --hyper-parameters    -h      PATH                    Path to the hyper        │
+│                                                          parameters file          │
+│                                                          [default: None]          │
+│                                                          [required]               │
+│    --style-vectors       -s      PATH                    Path to the style        │
+│                                                          vectors file (optional)  │
+│                                                          [default: None]          │
+│    --model-architecture  -a      [Style-Bert-VITS2|Styl  Model architecture       │
+│                                  e-Bert-VITS2            [default:                │
+│                                  (JP-Extra)]             Style-Bert-VITS2         │
+│                                                          (JP-Extra)]              │
+│    --help                                                Show this message and    │
+│                                                          exit.                    │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
 ```
 
@@ -133,26 +170,27 @@ $ aivmlib show-metadata --help
 - [AIVMX File Format Specification](#aivmx-file-format-specification)
 - [AIVM Manifest Specification (Version 1.0)](#aivm-manifest-specification-version-10)
 
-## AIVM File Format Specification
-
-以下に、AIVM ファイルフォーマットの仕様を示す。
-
-**AIVM** (**Ai**vis **V**oice **M**odel) は、[Safetensors](https://github.com/huggingface/safetensors) (.safetensors) 形式で保存された学習済み AI 音声合成モデルのヘッダー領域の中に、カスタムメタデータとして話者メタデータ ([AIVM マニフェスト](#aivm-manifest-specification-version-10)) ・ハイパーパラメータ・スタイルベクトルといった各種情報を格納した、Safetensors 形式の拡張仕様である。  
-「AI 音声合成モデル向けの、Safetensors 形式の共通メタデータ記述仕様」とも言える。
-
-### 概要
+## Overview
 
 学習済み AI 音声合成モデルと、その利用に必要な各種メタデータを単一ファイルにまとめることで、**ファイルの散逸や混乱を防ぎ、モデルの利用や共有を容易にすることを目的としている。**
 
 **AIVM 仕様は、音声合成モデルのモデルアーキテクチャに依存しない。**  
 異なるモデルアーキテクチャの音声合成モデルを共通のファイルフォーマットで扱えるよう、拡張性や汎用性を考慮して設計されている。
 
-大元の学習済み AI 音声合成モデルが Safetensors 形式で保存されているならば、原則どのようなモデルアーキテクチャであっても、メタデータを追加して AIVM ファイルを生成できる。
+大元の学習済みモデルが Safetensors または ONNX 形式で保存されているならば、原則どのようなモデルアーキテクチャであっても、メタデータを追加して AIVM / AIVMX ファイルを生成できる。
 
 > [!IMPORTANT]  
 > **AIVM 仕様は、各モデルアーキテクチャごとの推論方法を定義しない。あくまでも「AI 音声合成モデルのメタデータをまとめたファイル」としての仕様のみを定義する。**  
-> たとえば格納されている AI 音声合成モデルは PyTorch 用かもしれないし、TensorFlow 用かもしれない。  
+> たとえば AIVM ファイルの場合、格納されている AI 音声合成モデルは PyTorch 用かもしれないし、TensorFlow 用かもしれない。  
 > どのように AI 音声合成モデルの推論を行うかは、AIVM ファイルをサポートするソフトウェアの実装に委ねられている。
+
+## AIVM File Format Specification
+
+以下に、AIVM ファイルフォーマットの仕様を示す。
+
+**AIVM** (**Ai**vis **V**oice **M**odel) は、[Safetensors](https://github.com/huggingface/safetensors) (.safetensors) 形式で保存された学習済みモデルのヘッダー領域の中に、カスタムメタデータとして話者メタデータ ([AIVM マニフェスト](#aivm-manifest-specification-version-10)) ・ハイパーパラメータ・スタイルベクトルといった各種情報を格納した、Safetensors 形式の拡張仕様である。
+
+**「Safetensors 形式で保存された AI 音声合成モデル向けの、共通メタデータ記述仕様」** とも言える。
 
 ### Safetensors 形式との互換性
 
@@ -183,16 +221,19 @@ Safetensors のヘッダー JSON にはテンソルのオフセット等が格�
 
 以下に、AIVMX ファイルフォーマットの仕様を示す。
 
-**AIVMX** (**Ai**vis **V**oice **M**odel for ONN**X**) は、[ONNX](https://onnx.ai/) 形式で保存された学習済み AI 音声合成モデルのヘッダー領域の中に、カスタムメタデータとして話者メタデータ ([AIVM マニフェスト](#aivm-manifest-specification-version-10)) ・ハイパーパラメータ・スタイルベクトルといった各種情報を格納した、ONNX 形式の拡張仕様である。  
-「AI 音声合成モデル向けの、ONNX 形式の共通メタデータ記述仕様」とも言える。
+**AIVMX** (**Ai**vis **V**oice **M**odel for ONN**X**) は、[ONNX](https://onnx.ai/) 形式で保存された学習済みモデルのメタデータ領域の中に、カスタムメタデータとして話者メタデータ ([AIVM マニフェスト](#aivm-manifest-specification-version-10)) ・ハイパーパラメータ・スタイルベクトルといった各種情報を格納した、ONNX 形式の拡張仕様である。
 
-### 概要
-
-執筆中...
+**「ONNX 形式で保存された AI 音声合成モデル向けの、共通メタデータ記述仕様」** とも言える。
 
 ### ONNX 形式との互換性
 
 執筆中...
+
+### 参考資料
+
+- [ONNX](https://onnx.ai/)
+- [ONNX Metadata](https://onnx.ai/onnx/repo-docs/MetadataProps.html)
+- [How to populate onnx model with custom meta data map ?](https://github.com/onnx/sklearn-onnx/issues/214)
 
 ## AIVM Manifest Specification (Version 1.0)
 
