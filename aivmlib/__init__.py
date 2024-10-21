@@ -368,7 +368,13 @@ def write_aivmx_metadata(aivmx_file: BinaryIO, aivm_metadata: AivmMetadata) -> b
 
     # メタデータを ONNX モデルに追加
     for key, value in metadata.items():
-        model.metadata_props.append(onnx.StringStringEntryProto(key=key, value=value))
+        # 同一のキーが存在する場合は上書き
+        for prop in model.metadata_props:
+            if prop.key == key:
+                prop.value = value
+                break
+        else:
+            model.metadata_props.append(onnx.StringStringEntryProto(key=key, value=value))
 
     # 新しい AIVMX ファイルの内容をシリアライズ
     new_aivmx_file_content = model.SerializeToString()
