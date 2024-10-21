@@ -287,6 +287,8 @@ class AivmManifest(BaseModel):
     name: Annotated[str, constr(min_length=1)]
     # 音声合成モデルの説明 (省略時は空文字列になる)
     description: str = ''
+    # 音声合成モデルの作成者名のリスト (省略時は空リストになる)
+    creators: list[str] = []
     # 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列になる)
     # カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL リンクのみを記述する
     # 例: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
