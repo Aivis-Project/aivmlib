@@ -157,7 +157,7 @@ $ aivmlib create-aivmx --help
 
 ## License
 
-[MIT License](License.txt)
+[MIT License](LICENSE)
 
 <br>
 
