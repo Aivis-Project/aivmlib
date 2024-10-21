@@ -232,6 +232,7 @@ Safetensors のヘッダー JSON にはテンソルのオフセット等が格�
 ### 参考資料
 
 - [ONNX](https://onnx.ai/)
+- [Open Neural Network Exchange Intermediate Representation (ONNX IR) Specification](https://onnx.ai/onnx/repo-docs/IR.html#optional-metadata)
 - [ONNX Metadata](https://onnx.ai/onnx/repo-docs/MetadataProps.html)
 - [How to populate onnx model with custom meta data map ?](https://github.com/onnx/sklearn-onnx/issues/214)
 
