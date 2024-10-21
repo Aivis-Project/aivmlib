@@ -262,7 +262,7 @@ JSON フォーマットの都合上、画像や音声データは Base64 エン�
 
 ### AIVM マニフェストのフィールド定義
 
-以下は AIVM マニフェスト (Version 1.0) 仕様時点での AIVM マニフェストのフィールド定義を示す ([Pydantic スキーマ定義](aivmlib/schemas/aivm_manifest.py) より抜粋) 。
+以下は AIVM マニフェスト (Version 1.0) 仕様時点での AIVM マニフェストのフィールド定義を示す ([aivmlib の Pydantic スキーマ定義](aivmlib/schemas/aivm_manifest.py) より抜粋) 。
 
 > [!IMPORTANT]  
 > **AIVM マニフェスト内のフィールドは、今後 AIVM 仕様が更新された際に追加・拡張・削除される可能性がある。**  
