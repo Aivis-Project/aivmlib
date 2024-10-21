@@ -44,6 +44,7 @@ def show_metadata(
     except Exception as e:
         rich.print(Rule(characters='=', style=Style(color='#41A2EC')))
         rich.print(f'[red]Error reading AIVM or AIVMX file: {e}[/red]')
+        rich.print(Rule(characters='-', style=Style(color='#41A2EC')))
         rich.print(traceback.format_exc())
         rich.print(Rule(characters='=', style=Style(color='#41A2EC')))
 
@@ -114,6 +115,7 @@ def create_aivm(
     except Exception as e:
         rich.print(Rule(characters='=', style=Style(color='#41A2EC')))
         rich.print(f'[red]Error creating AIVM file: {e}[/red]')
+        rich.print(Rule(characters='-', style=Style(color='#41A2EC')))
         rich.print(traceback.format_exc())
         rich.print(Rule(characters='=', style=Style(color='#41A2EC')))
 
@@ -184,6 +186,7 @@ def create_aivmx(
     except Exception as e:
         rich.print(Rule(characters='=', style=Style(color='#41A2EC')))
         rich.print(f'[red]Error creating AIVMX file: {e}[/red]')
+        rich.print(Rule(characters='-', style=Style(color='#41A2EC')))
         rich.print(traceback.format_exc())
         rich.print(Rule(characters='=', style=Style(color='#41A2EC')))
 

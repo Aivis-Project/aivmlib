@@ -2,7 +2,6 @@ import base64
 import json
 import onnx
 import onnx.onnx_pb
-import traceback
 import uuid
 from google.protobuf.message import DecodeError
 from pydantic import ValidationError
@@ -58,7 +57,6 @@ def generate_aivm_metadata(
         try:
             hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(hyper_parameters_content)
         except ValidationError:
-            traceback.print_exc()
             raise AivmValidationError(f"The format of the hyper-parameters file for {model_architecture} is incorrect.")
 
         # スタイルベクトルファイルを読み込む
@@ -141,7 +139,6 @@ def validate_aivm_metadata(raw_metadata: dict[str, str]) -> AivmMetadata:
     try:
         aivm_manifest = AivmManifest.model_validate_json(raw_metadata['aivm_manifest'])
     except ValidationError:
-        traceback.print_exc()
         raise AivmValidationError('Invalid AIVM manifest format.')
 
     # ハイパーパラメータのバリデーション
@@ -152,7 +149,6 @@ def validate_aivm_metadata(raw_metadata: dict[str, str]) -> AivmMetadata:
             else:
                 raise AivmValidationError(f"Unsupported hyper-parameters for model architecture: {aivm_manifest.model_architecture}.")
         except ValidationError:
-            traceback.print_exc()
             raise AivmValidationError('Invalid hyper-parameters format.')
     else:
         raise AivmValidationError('Hyper-parameters not found.')
@@ -164,7 +160,6 @@ def validate_aivm_metadata(raw_metadata: dict[str, str]) -> AivmMetadata:
             base64_string = raw_metadata['aivm_style_vectors']
             aivm_style_vectors = base64.b64decode(base64_string)
         except Exception:
-            traceback.print_exc()
             raise AivmValidationError('Failed to decode style vectors.')
 
     # AivmMetadata オブジェクトを構築して返す
@@ -201,10 +196,10 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
 
     # ヘッダー部分を抽出
     header_bytes = array_buffer[8:8 + header_size]
-    header_text = header_bytes.decode('utf-8')
     try:
+        header_text = header_bytes.decode('utf-8')
         header_json = json.loads(header_text)
-    except json.JSONDecodeError:
+    except (UnicodeDecodeError, json.JSONDecodeError):
         raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVM (Safetensors) file.')
 
     # "__metadata__" キーから AIVM メタデータを取得
@@ -235,7 +230,6 @@ def read_aivmx_metadata(aivmx_file: BinaryIO) -> AivmMetadata:
     try:
         model = onnx.load_model(aivmx_file)
     except DecodeError:
-        traceback.print_exc()
         raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVMX (ONNX) file.')
 
     # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
@@ -349,7 +343,6 @@ def write_aivmx_metadata(aivmx_file: BinaryIO, aivm_metadata: AivmMetadata) -> b
     try:
         model = onnx.load_model(aivmx_file)
     except DecodeError:
-        traceback.print_exc()
         raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVMX (ONNX) file.')
 
     # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
