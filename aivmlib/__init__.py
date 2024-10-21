@@ -51,7 +51,7 @@ def generate_aivm_metadata(
         style_vectors_file.seek(0)
 
     # Style-Bert-VITS2 系の音声合成モデルの場合
-    if model_architecture.startswith('Style-Bert-VITS2'):
+    if model_architecture in [ModelArchitecture.StyleBertVITS2, ModelArchitecture.StyleBertVITS2JPExtra]:
 
         # ハイパーパラメータファイル (JSON) を読み込んだ後、Pydantic でバリデーションする
         hyper_parameters_content = hyper_parameters_file.read().decode('utf-8')
@@ -147,7 +147,7 @@ def validate_aivm_metadata(raw_metadata: dict[str, str]) -> AivmMetadata:
     # ハイパーパラメータのバリデーション
     if 'aivm_hyper_parameters' in raw_metadata:
         try:
-            if aivm_manifest.model_architecture.startswith('Style-Bert-VITS2'):
+            if aivm_manifest.model_architecture in [ModelArchitecture.StyleBertVITS2, ModelArchitecture.StyleBertVITS2JPExtra]:
                 aivm_hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(raw_metadata['aivm_hyper_parameters'])
             else:
                 raise AivmValidationError(f"Unsupported hyper-parameters for model architecture: {aivm_manifest.model_architecture}.")
@@ -395,7 +395,7 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
     """
 
     # Style-Bert-VITS2 系の音声合成モデルの場合
-    if aivm_metadata.manifest.model_architecture.startswith('Style-Bert-VITS2'):
+    if aivm_metadata.manifest.model_architecture in [ModelArchitecture.StyleBertVITS2, ModelArchitecture.StyleBertVITS2JPExtra]:
 
         # スタイルベクトルが設定されていなければエラー
         if aivm_metadata.style_vectors is None:
