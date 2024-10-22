@@ -21,7 +21,7 @@ from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 
 
 # AIVM / AIVMX ファイルフォーマットの仕様は下記ドキュメントを参照のこと
-# ref: https://github.com/Aivis-Project/aivmlib#aivm-specifications
+# ref: https://github.com/Aivis-Project/aivmlib#aivm-specification
 
 
 def generate_aivm_metadata(
