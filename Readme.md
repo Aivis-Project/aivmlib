@@ -101,10 +101,10 @@ $ aivmlib create-aivm --help
 │                                                          model file               │
 │                                                          [default: None]          │
 │                                                          [required]               │
-│ *  --hyper-parameters    -h      PATH                    Path to the hyper        │
+│    --hyper-parameters    -h      PATH                    Path to the hyper        │
 │                                                          parameters file          │
+│                                                          (optional)               │
 │                                                          [default: None]          │
-│                                                          [required]               │
 │    --style-vectors       -s      PATH                    Path to the style        │
 │                                                          vectors file (optional)  │
 │                                                          [default: None]          │
@@ -132,10 +132,10 @@ $ aivmlib create-aivmx --help
 │                                                          file                     │
 │                                                          [default: None]          │
 │                                                          [required]               │
-│ *  --hyper-parameters    -h      PATH                    Path to the hyper        │
+│    --hyper-parameters    -h      PATH                    Path to the hyper        │
 │                                                          parameters file          │
+│                                                          (optional)               │
 │                                                          [default: None]          │
-│                                                          [required]               │
 │    --style-vectors       -s      PATH                    Path to the style        │
 │                                                          vectors file (optional)  │
 │                                                          [default: None]          │
@@ -146,6 +146,29 @@ $ aivmlib create-aivmx --help
 │    --help                                                Show this message and    │
 │                                                          exit.                    │
 ╰───────────────────────────────────────────────────────────────────────────────────╯
+```
+
+```bash
+# Style-Bert-VITS2 (JP-Extra) モデルアーキテクチャの、Safetensors 形式で保存された学習済みモデルから AIVM ファイルを生成
+# .safetensors と同じディレクトリに config.json と style_vectors.npy があることが前提
+# -a オプションを省略した場合、既定で "Style-Bert-VITS2 (JP-Extra)" の学習済みモデルと判定される
+$ aivmlib create-aivm -o ./output.aivm -m ./model.safetensors
+
+# 明示的にハイパーパラメータとスタイルベクトルを指定して実行する場合
+$ aivmlib create-aivm -o ./output.aivm -m ./model.safetensors -h ./config.json -s ./style-vectors.npy
+
+# Style-Bert-VITS2 モデルアーキテクチャの、ONNX 形式で保存された学習済みモデルから AIVMX ファイルを生成
+# .onnx と同じディレクトリに config.json と style_vectors.npy があることが前提
+$ aivmlib create-aivmx -o ./output.aivmx -m ./model.onnx -a "Style-Bert-VITS2"
+
+# 明示的にハイパーパラメータとスタイルベクトルを指定して実行する場合
+$ aivmlib create-aivmx -o ./output.aivmx -m ./model.onnx -a "Style-Bert-VITS2" -h ./config.json -s ./style-vectors.npy
+
+# AIVM ファイルに格納された AIVM メタデータを確認
+$ aivmlib show-metadata ./output.aivm
+
+# AIVMX ファイルに格納された AIVM メタデータを確認
+$ aivmlib show-metadata ./output.aivmx
 ```
 
 > [!TIP]  
