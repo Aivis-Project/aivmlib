@@ -149,19 +149,19 @@ $ aivmlib create-aivmx --help
 ```
 
 ```bash
-# Style-Bert-VITS2 (JP-Extra) モデルアーキテクチャの、Safetensors 形式で保存された学習済みモデルから AIVM ファイルを生成
+# Safetensors 形式で保存された "Style-Bert-VITS2 (JP-Extra)" モデルアーキテクチャの学習済みモデルから AIVM ファイルを生成
 # .safetensors と同じディレクトリに config.json と style_vectors.npy があることが前提
 # -a オプションを省略した場合、既定で "Style-Bert-VITS2 (JP-Extra)" の学習済みモデルと判定される
 $ aivmlib create-aivm -o ./output.aivm -m ./model.safetensors
 
-# 明示的にハイパーパラメータとスタイルベクトルを指定して実行する場合
+# 明示的にハイパーパラメータとスタイルベクトルのパスを指定して生成
 $ aivmlib create-aivm -o ./output.aivm -m ./model.safetensors -h ./config.json -s ./style-vectors.npy
 
-# Style-Bert-VITS2 モデルアーキテクチャの、ONNX 形式で保存された学習済みモデルから AIVMX ファイルを生成
+# ONNX 形式で保存された "Style-Bert-VITS2" モデルアーキテクチャの学習済みモデルから AIVMX ファイルを生成
 # .onnx と同じディレクトリに config.json と style_vectors.npy があることが前提
 $ aivmlib create-aivmx -o ./output.aivmx -m ./model.onnx -a "Style-Bert-VITS2"
 
-# 明示的にハイパーパラメータとスタイルベクトルを指定して実行する場合
+# 明示的にハイパーパラメータとスタイルベクトルのパスを指定して生成
 $ aivmlib create-aivmx -o ./output.aivmx -m ./model.onnx -a "Style-Bert-VITS2" -h ./config.json -s ./style-vectors.npy
 
 # AIVM ファイルに格納された AIVM メタデータを確認
