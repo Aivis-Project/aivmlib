@@ -15,7 +15,6 @@ class ModelArchitecture(StrEnum):
     StyleBertVITS2 = 'Style-Bert-VITS2'
     StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'
 
-
 class ModelFormat(StrEnum):
     Safetensors = 'Safetensors'
     ONNX = 'ONNX'
