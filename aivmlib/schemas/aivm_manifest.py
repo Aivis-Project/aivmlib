@@ -78,7 +78,7 @@ class AivmManifestSpeaker(BaseModel):
     icon: Annotated[str, StringConstraints(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')]
     # 話者の対応言語のリスト (BCP 47 言語タグ)
     # 例: 日本語: "ja", アメリカ英語: "en-US", 標準中国語: "zh-CN"
-    supported_languages: list[Annotated[str, StringConstraints(pattern=r'^[a-z]{2,3}(-[a-zA-Z]{4})?(-([a-zA-Z]{2}|[0-9]{3}))?(-([a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3}))*(-[a-zA-Z](-[a-zA-Z0-9]{2,8})+)*(-x(-[a-zA-Z0-9]{1,8})+)?$')]]
+    supported_languages: list[Annotated[str, StringConstraints(pattern=r'^[a-z]{2,3}(?:-[A-Z]{4})?(?:-(?:[A-Z]{2}|\d{3}))?(?:-(?:[A-Za-z0-9]{5,8}|\d[A-Za-z0-9]{3}))*(?:-[A-Za-z](?:-[A-Za-z0-9]{2,8})+)*(?:-x(?:-[A-Za-z0-9]{1,8})+)?$')]]
     # 話者を一意に識別する UUID
     uuid: UUID
     # 話者のローカル ID (この音声合成モデル内で話者を識別するための一意なローカル ID で、uuid とは異なる)
