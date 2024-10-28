@@ -315,10 +315,10 @@ class AivmManifest(BaseModel):
     # 作成者名には npm package.json の "author", "contributors" に指定できるものと同じ書式を利用できる
     # 例: ["John Doe", "Jane Doe <jane.doe@example.com>", "John Doe <john.doe@example.com> (https://example.com)"]
     creators: list[Annotated[str, StringConstraints(min_length=1, max_length=255)]] = []
-    # 音声合成モデルの利用規約 (Markdown 形式 / 省略時は空文字列を設定)
-    # カスタム利用規約を設定する場合を除き、原則各ライセンスへの URL リンクのみを記述する
-    # 例: [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)
-    terms_of_use: str = ''
+    # 音声合成モデルのライセンス情報 (Markdown 形式またはプレーンテキスト / 省略時は None を設定)
+    # AIVM 仕様に対応するソフトでライセンス情報を表示できるよう、Markdown 形式またはプレーンテキストでライセンスの全文を設定する想定
+    # 社内のみでの利用など、この音声合成モデルの公開・配布を行わない場合は None を設定する
+    license: Annotated[str, StringConstraints(min_length=1)] | None = None
     # 音声合成モデルのアーキテクチャ (音声合成技術の種類)
     model_architecture: ModelArchitecture
     # 音声合成モデルのモデル形式 (Safetensors または ONNX)
