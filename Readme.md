@@ -12,7 +12,7 @@
 
 [AivisSpeech](https://github.com/Aivis-Project/AivisSpeech) / [AivisSpeech-Engine](https://github.com/Aivis-Project/AivisSpeech-Engine) をはじめとした AIVM 仕様に対応するソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
 
-**aivmlib / [aivmlib-web](https://github.com/aivis-project/aivmlib-web) では、AIVM / AIVMX ファイル内のメタデータを読み書きするためのユーティリティを提供します。**  
+**aivmlib / [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) では、AIVM / AIVMX ファイル内のメタデータを読み書きするためのユーティリティを提供します。**  
 この Readme の後半では、aivmlib / aivmlib-web で対応している各 AIVM 仕様についても説明しています。
 
 > [!TIP]  
@@ -184,7 +184,7 @@ $ aivmlib show-metadata ./output.aivmx
 > **ライブラリとしての使い方は、[`__main__.py`](aivmlib/__main__.py) に実装されている CLI ツールの実装を参照してください。**
 
 > [!IMPORTANT]  
-> **aivmlib / [aivmlib-web](https://github.com/aivis-project/aivmlib-web) は、AIVM ファイルフォーマットの読み込み/書き込み機能のみを有するライブラリです。**  
+> **aivmlib / [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) は、AIVM ファイルフォーマットの読み込み/書き込み機能のみを有するライブラリです。**  
 > 各モデルアーキテクチャごとの AI 音声合成モデルの推論ロジックや、aivmlib / aivmlib-web から取得したデータをどのようにユーザーに提示するかは、すべてライブラリの利用者に委ねられています。
 
 ## License
