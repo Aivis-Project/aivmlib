@@ -96,7 +96,7 @@ class AivmManifestSpeakerStyle(BaseModel):
     icon: Annotated[str, StringConstraints(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')] | None = None
     # スタイルの ID (この話者内でスタイルを識別するための一意なローカル ID で、uuid とは異なる)
     local_id: Annotated[int, Field(ge=0, le=31)]  # 最大 32 スタイルまでサポート
-    # スタイルのボイスサンプル (省略時は空リストを設定)
+    # スタイルごとのボイスサンプル (省略時は空リストを設定)
     voice_samples: list[AivmManifestVoiceSample] = []
 
 class AivmManifestVoiceSample(BaseModel):
@@ -105,7 +105,7 @@ class AivmManifestVoiceSample(BaseModel):
     # 音声ファイル形式は WAV (audio/wav, Codec: PCM 16bit)・M4A (audio/mp4, Codec: AAC-LC) のいずれか (M4A を推奨)
     audio: Annotated[str, StringConstraints(pattern=r'^data:audio/(wav|mp4);base64,[A-Za-z0-9+/=]+$')]
     # ボイスサンプルの書き起こし文
-    # 書き起こし文は音声ファイルの発話内容と一致している必要がある
+    # 書き起こし文は音声ファイルでの発話内容と一致している必要がある
     transcript: Annotated[str, StringConstraints(min_length=1)]
 
 
