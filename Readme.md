@@ -223,7 +223,7 @@ Safetensors 形式の拡張仕様のため、そのまま通常の Safetensors �
 Safetensors 同様、先頭 8bytes の符号なし Little-Endian 64bit 整数がヘッダーサイズ、その後ろにヘッダーサイズの長さだけ UTF-8 の JSON 文字列が続く。  
 Safetensors のヘッダー JSON にはテンソルのオフセット等が格納されているが、`__metadata__` キーには string から string への map を自由に設定可能な仕様である。
 
-この仕様を活用し、AIVM は `__metadata__` 内の以下のキーに、次のデータを JSON 文字列にシリアライズした上で格納する。
+この仕様を活用し、AIVM は `__metadata__` 内の以下のキーに、次の文字列データを格納する：
 
 - **`aivm_manifest` : [AIVM マニフェスト](#aivm-manifest-specification-version-10)**
   - JSON 文字列として格納される
@@ -255,7 +255,7 @@ ONNX 形式の拡張仕様のため、そのまま通常の ONNX ファイルと
 
 ONNX ファイルは Protocol Buffers 形式で定義されており、ルートである `ModelProto` メッセージの `metadata_props` フィールドに、`StringStringEntryProto` のリストとしてメタデータを格納できる仕様となっている。
 
-この仕様を活用し、AIVMX は `metadata_props` 内の以下のキーに、次のデータを格納する：
+この仕様を活用し、AIVMX は `metadata_props` 内の以下のキーに、次の文字列データを格納する：
 
 - **`aivm_manifest` : [AIVM マニフェスト](#aivm-manifest-specification-version-10)**
   - JSON 文字列として格納される
