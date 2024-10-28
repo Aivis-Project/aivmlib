@@ -114,6 +114,7 @@ DEFAULT_AIVM_MANIFEST = AivmManifest(
     manifest_version = '1.0',
     name = 'Model Name',
     description = '',
+    creators = [],
     license = None,
     model_architecture = ModelArchitecture.StyleBertVITS2JPExtra,
     model_format = ModelFormat.Safetensors,
