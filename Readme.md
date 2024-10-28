@@ -52,7 +52,7 @@ $ aivmlib --help
 
  Usage: aivmlib [OPTIONS] COMMAND [ARGS]...
 
- Aivis Voice Model File (.aivm) Utility Library
+ Aivis Voice Model File (.aivm/.aivmx) Utility Library
 
 ╭─ Options ─────────────────────────────────────────────────────────────────────────╮
 │ --install-completion          Install completion for the current shell.           │

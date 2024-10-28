@@ -12,7 +12,7 @@ import aivmlib
 from aivmlib.schemas.aivm_manifest import ModelArchitecture
 
 
-app = typer.Typer(help='Aivis Voice Model File (.aivm) Utility Library')
+app = typer.Typer(help='Aivis Voice Model File (.aivm/.aivmx) Utility Library')
 
 
 @app.command()
