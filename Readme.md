@@ -34,6 +34,15 @@
   - [AIVM Manifest Specification (Version 1.0)](#aivm-manifest-specification-version-10)
     - [サポートされるモデルアーキテクチャ](#サポートされるモデルアーキテクチャ)
     - [AIVM マニフェストのフィールド定義](#aivm-マニフェストのフィールド定義)
+  - [FAQ](#faq)
+    - [Q. AIVM と AIVMX という 2 つのフォーマットが定義されているのはなぜですか？](#q-aivm-と-aivmx-という-2-つのフォーマットが定義されているのはなぜですか)
+    - [Q. AIVM / AIVMX ファイルを既存のツールで読み込むことはできますか？](#q-aivm--aivmx-ファイルを既存のツールで読み込むことはできますか)
+    - [Q. 既存の AI 音声合成モデルを AIVM / AIVMX に変換するにはどうすればよいですか？](#q-既存の-ai-音声合成モデルを-aivm--aivmx-に変換するにはどうすればよいですか)
+    - [Q. AIVM マニフェストのバージョン管理はどのように行われますか？](#q-aivm-マニフェストのバージョン管理はどのように行われますか)
+    - [Q. 新しいモデルアーキテクチャのサポートを追加するにはどうすればよいですか？](#q-新しいモデルアーキテクチャのサポートを追加するにはどうすればよいですか)
+    - [Q. ライセンス情報はどのように記述すべきですか？](#q-ライセンス情報はどのように記述すべきですか)
+    - [Q. 画像・音声データのサイズ制限はありますか？](#q-画像音声データのサイズ制限はありますか)
+    - [Q. メタデータは手動で編集できますか？](#q-メタデータは手動で編集できますか)
 
 ## Installation
 
@@ -192,6 +201,7 @@ $ aivmlib show-metadata ./output.aivmx
 - [AIVM File Format Specification](#aivm-file-format-specification)
 - [AIVMX File Format Specification](#aivmx-file-format-specification)
 - [AIVM Manifest Specification (Version 1.0)](#aivm-manifest-specification-version-10)
+- [FAQ](#faq)
 
 ## Overview
 
@@ -394,3 +404,102 @@ class AivmManifestVoiceSample(BaseModel):
     # 書き起こし文は音声ファイルでの発話内容と一致している必要がある
     transcript: Annotated[str, StringConstraints(min_length=1)]
 ```
+
+## FAQ
+
+### Q. AIVM と AIVMX という 2 つのフォーマットが定義されているのはなぜですか？
+
+**A. 異なる用途や環境に最適化された 2 つのフォーマットを提供することで、より柔軟な利用を可能にするためです。**
+
+- **AIVM (.aivm): PyTorch などの機械学習フレームワークで直接利用できる [Safetensors](https://huggingface.co/docs/safetensors/index) 形式をベースとしたフォーマットです。**
+  - 研究開発やモデルの Fine-Tuning 、モデルマージによる新たな声質生成などに適しています。
+  - 一般に、NVIDIA GPU での高速推論に特化しています (CUDA / TensorRT など) 。
+  - PyTorch には .pth (pickle) 形式もありますが、Python コードをそのままシリアライズする pickle の特性上、任意コードの実行が可能な脆弱性があります。したがって、AIVM 仕様では対応予定はありません。
+- **AIVMX (.aivmx): 様々な環境で高速な推論が可能な [ONNX](https://onnx.ai/) 形式をベースとしたフォーマットです。**
+  - 特に CPU での推論や、エッジデバイスでの利用に適しています。
+  - 2024 年時点では、一般的な PC ユーザーの多くは NVIDIA GPU や NPU を搭載していない PC を使用しています。
+    - ONNX 形式は CPU での推論性能に優れているため、GPU や NPU がなくても快適に音声合成を実行できます。
+    - さらに ONNX 形式は DirectML 推論をサポートしており、Windows では AMD Radeon / Intel Arc GPU でも高速推論が可能です。
+  - **AIVM 仕様対応ソフトウェアのリファレンス実装でもある [AivisSpeech](https://github.com/Aivis-Project/AivisSpeech) は AIVMX ファイルにのみ対応しています。**
+    - PyTorch 依存を排除してインストールサイズを削減し、同時に CPU 推論速度を向上させるためです。
+
+### Q. AIVM / AIVMX ファイルを既存のツールで読み込むことはできますか？
+
+**A. はい、可能です。**
+
+AIVM は Safetensors 形式の、AIVMX は ONNX 形式の拡張仕様として設計されているため、それぞれ通常の Safetensors ファイル・ONNX ファイルとして読み込むことができます。
+
+AIVM メタデータは既存のモデルフォーマット仕様で定められたメタデータ領域に格納されているため、既存のツールの動作に影響を与えることはありません。
+
+### Q. 既存の AI 音声合成モデルを AIVM / AIVMX に変換するにはどうすればよいですか？
+
+**A. 以下の2つの方法があります。**
+
+1. **[AIVM Generator](https://aivm-generator.aivis-project.com/) (推奨)**: ブラウザ上の GUI で簡単に AIVM / AIVMX ファイルを生成・編集できます。
+2. **aivmlib**: このライブラリが提供する CLI ツールを使用して、コマンドラインから AIVM / AIVMX ファイルを生成できます。
+
+なお、変換元のモデルは単一の Safetensors または ONNX 形式で保存されている必要があります。
+
+### Q. AIVM マニフェストのバージョン管理はどのように行われますか？
+
+**A. AIVM マニフェストのバージョン管理は以下の方針で行われます。**
+
+- マイナーバージョンアップ (ex: 1.0 -> 1.1) : 新しいフィールドの追加など、後方互換性が保たれた変更
+- メジャーバージョンアップ (ex: 1.1 -> 2.0) : 既存フィールドの削除や構造変更など、後方互換性のない変更
+
+現在は 1.0 が最新です。
+
+### Q. 新しいモデルアーキテクチャのサポートを追加するにはどうすればよいですか？
+
+**A. AIVM 仕様はモデルアーキテクチャの実装詳細を規定しないため、比較的容易に新しいモデルアーキテクチャを追加できます。**
+
+1. **AIVM マニフェスト内のメタデータだけで対応できる場合**: `ModelArchitecture` に新しい種類（例: `GPT-SoVITS2`）を追加するプルリクエストを送信するだけで対応可能です。
+   - その際、なるべく同時に `generate_aivm_metadata()` 関数に新しいモデルアーキテクチャのサポートを追加してください。
+2. **モデルアーキテクチャ固有のメタデータの追加が必要な場合**: `aivm_style_vectors` フィールドのように、AIVM マニフェストとは別のメタデータキーを新設する仕様を策定した上で、プルリクエストを送信してください。
+   - なるべく aivmlib (Python) と [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) (TypeScript Web) の両方でサポートできる仕様が望ましいです。
+   - 当該モデルアーキテクチャが Python での推論しか対応していない場合、推論時のみ必要なメタデータに関しては、aivmlib-web で対応可能な仕様である必要はありません。
+   - AIVM マニフェストに追加するメタデータは、aivmlib-web でもサポートできるものでなければなりません（後述）。
+
+> [!IMPORTANT]  
+> **AIVM マニフェストは、モデルアーキテクチャに依存しない共通のメタデータのみを定義する設計としています。**  
+> 実装固有のハイパーパラメータは、`aivm_hyper_parameters` フィールドに格納してください。  
+> ハイパーパラメータの Pydantic スキーマ定義の追加も受け付けます。現在は `Style-Bert-VITS2` 系アーキテクチャのハイパーパラメータのスキーマのみが定義されています。
+
+> [!IMPORTANT]
+> **AIVM 仕様のリファレンスライブラリには、aivmlib だけでなく [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) もあることに注意が必要です。** AIVM Generator の内部では aivmlib-web が利用されています。  
+> **提出される AIVM マニフェスト仕様は、技術的に aivmlib (Python) と aivmlib-web (TypeScript Web) の両方でサポートできるものでなければなりません。**  
+> aivmlib にサポートを追加したら、aivmlib-web にも同様にサポートを追加してください。
+
+> [!NOTE]
+> 当然ですが、AIVM / AIVMX への変換元モデルは単一の Safetensors または ONNX 形式で保存されている必要があります。  
+> **したがって、複数のモデルファイルにまたがるモデルアーキテクチャはサポートされていません。**  
+> モデルファイルを一つに結合する、不要なモデルファイルを削るなどの対応をご検討ください。
+
+### Q. ライセンス情報はどのように記述すべきですか？
+
+**A. ライセンス情報は Markdown 形式またはプレーンテキストで、ライセンスの全文を AIVM / AIVMX ファイルに直接埋め込む形で設定します。**
+
+URL 指定ではなくライセンス全文を埋め込む理由は以下の通りです。
+
+- URL の永続性が保証できない
+- URL だとライセンス名が分からない
+- カスタムライセンスを規定するのが難しい
+- AIVM 仕様対応ソフトウェアでライセンス情報を直接表示できる必要がある
+
+### Q. 画像・音声データのサイズ制限はありますか？
+
+**A. 具体的なサイズ制限は規定していませんが、一般にモデルファイル自体のファイルサイズが巨大なため、メタデータによるさらなるファイルサイズ増加は最小限に抑えるべきです。**
+
+- 画像ファイル: 512×512 の JPEG または PNG (JPEG を推奨)
+- 音声ファイル: WAV (PCM 16bit) または M4A (AAC-LC) (M4A を推奨)
+
+リファレンス実装である [AIVM Generator](https://aivm-generator.aivis-project.com/) では、これらのガイドラインに従って適切なサイズ最適化を行っています。
+
+### Q. メタデータは手動で編集できますか？
+
+**A. メタデータは直接バイナリに埋め込まれるため、手動編集は推奨されません。**  
+エンドユーザーの方は [AIVM Generator](https://aivm-generator.aivis-project.com/) をご利用ください。
+
+> [!TIP]
+> 開発者は、aivmlib / [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) を使用して独自のアプリケーションを作成できます。  
+> aivmlib CLI は、最低限のメタデータを持つ AIVM / AIVMX ファイルの生成と、メタデータの確認機能のみを提供します。
