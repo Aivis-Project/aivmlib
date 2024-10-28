@@ -5,15 +5,15 @@ from enum import StrEnum
 from dataclasses import dataclass
 from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 from uuid import UUID
-from typing import Annotated
+from typing import Annotated, Literal
 
 from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 
 
 class ModelArchitecture(StrEnum):
-    StyleBertVITS2 = 'Style-Bert-VITS2'
-    StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'
+    StyleBertVITS2 = 'Style-Bert-VITS2'  # 対応言語: "ja", "en-US", "zh-CN"
+    StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'  # 対応言語: "ja"
 
 class ModelFormat(StrEnum):
     Safetensors = 'Safetensors'
@@ -35,7 +35,7 @@ class AivmManifest(BaseModel):
     """ AIVM マニフェストのスキーマ """
     # AIVM マニフェストのバージョン (ex: 1.0)
     # 現在は 1.0 のみサポート
-    manifest_version: Annotated[str, StringConstraints(pattern=r'^1\.0$')]
+    manifest_version: Literal['1.0']
     # 音声合成モデルの名前 (最大 80 文字)
     # 音声合成モデル内の話者が 1 名の場合は話者名と同じ値を設定すべき
     name: Annotated[str, StringConstraints(min_length=1, max_length=80)]
@@ -76,8 +76,9 @@ class AivmManifestSpeaker(BaseModel):
     # 話者のアイコン画像 (Data URL)
     # 画像ファイル形式は 512×512 の JPEG (image/jpeg)・PNG (image/png) のいずれか (JPEG を推奨)
     icon: Annotated[str, StringConstraints(pattern=r'^data:image/(jpeg|png);base64,[A-Za-z0-9+/=]+$')]
-    # 話者の対応言語のリスト (ja, en, zh のような ISO 639-1 言語コード)
-    supported_languages: list[Annotated[str, StringConstraints(min_length=2, max_length=2)]]
+    # 話者の対応言語のリスト (BCP 47 言語タグ)
+    # 例: 日本語: "ja", アメリカ英語: "en-US", 標準中国語: "zh-CN"
+    supported_languages: list[Annotated[str, StringConstraints(pattern=r'^[a-z]{2,3}(-[a-zA-Z]{4})?(-([a-zA-Z]{2}|[0-9]{3}))?(-([a-zA-Z0-9]{5,8}|[0-9][a-zA-Z0-9]{3}))*(-[a-zA-Z](-[a-zA-Z0-9]{2,8})+)*(-x(-[a-zA-Z0-9]{1,8})+)?$')]]
     # 話者を一意に識別する UUID
     uuid: UUID
     # 話者のローカル ID (この音声合成モデル内で話者を識別するための一意なローカル ID で、uuid とは異なる)
