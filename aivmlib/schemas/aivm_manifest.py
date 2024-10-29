@@ -12,11 +12,15 @@ from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 
 
 class ModelArchitecture(StrEnum):
-    StyleBertVITS2 = 'Style-Bert-VITS2'  # 対応言語: "ja", "en-US", "zh-CN"
-    StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'  # 対応言語: "ja"
+    # 対応言語: "ja", "en-US", "zh-CN"
+    StyleBertVITS2 = 'Style-Bert-VITS2'
+    # 対応言語: "ja"
+    StyleBertVITS2JPExtra = 'Style-Bert-VITS2 (JP-Extra)'
 
 class ModelFormat(StrEnum):
+    # Safetensors: AIVM (.aivm) のモデル形式
     Safetensors = 'Safetensors'
+    # ONNX: AIVMX (.aivmx) のモデル形式
     ONNX = 'ONNX'
 
 
