@@ -8,7 +8,6 @@
 💠 **aivmlib**: **Ai**vis **V**oice **M**odel File (.aivm/.aivmx) Utility **Lib**rary
 
 -----
-<br>
 
 **AIVM** (**Ai**vis **V**oice **M**odel) / **AIVMX** (**Ai**vis **V**oice **M**odel for ONN**X**) は、**学習済みモデル・ハイパーパラメータ・スタイルベクトル・話者メタデータ（名前・概要・ライセンス・アイコン・ボイスサンプル など）を 1 つのファイルにギュッとまとめた、AI 音声合成モデル用オープンファイルフォーマット**です。
 
