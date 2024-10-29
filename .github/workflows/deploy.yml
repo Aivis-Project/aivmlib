@@ -2,13 +2,10 @@ name: Deploy to PyPI
 
 on:
   push:
-    branches: [ master ]
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
-      publish_testpypi:
-        type: boolean
-        required: true
-        description: 'Publish to Test PyPI'
       publish_pypi:
         type: boolean
         required: true
@@ -36,16 +33,8 @@ jobs:
       - name: Build wheel and sdist
         run: poetry build
 
-      - name: Publish to Test PyPI
-        if: ${{ github.event.inputs.publish_testpypi == 'true' }}
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          packages-dir: dist
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-          repository-url: https://test.pypi.org/legacy/
-
       - name: Publish to PyPI
-        if: ${{ github.event.inputs.publish_pypi == 'true' }}
+        if: ${{ github.event.inputs.publish_pypi == 'true' || github.event_name == 'push' }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: dist
