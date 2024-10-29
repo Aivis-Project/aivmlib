@@ -478,9 +478,8 @@ AIVM メタデータは既存のモデルフォーマット仕様で定められ
 **A. aivmlib と aivmlib-web は、同じ AIVM 仕様を異なる言語/動作環境向けに実装したライブラリになります。**
 
 - **aivmlib**: Python 実装。デスクトップアプリケーションやサーバーサイドでの利用を想定しています。
-  - NVIDIA GPU 搭載の高火力サーバーで運用するケースでは、モデルアーキテクチャにもよりますが、AIVMX (ONNX) 形式よりも AIVM (Safetensors) 形式の方が高速な可能性もあります。
-  - aivmlib は aivmlib-web のリファレンス実装でもあります。
-    - 新しい仕様を実装する際は、まず aivmlib に実装してから、aivmlib-web に移植する形をとっています。
+  - NVIDIA GPU 搭載の高火力サーバーで運用するケースでは、モデルアーキテクチャや推論環境次第ですが、AIVMX (ONNX) 形式よりも AIVM (Safetensors) 形式の方が高速な可能性もあります。
+  - aivmlib は aivmlib-web のリファレンス実装でもあります。新しい仕様を実装する際は、まず aivmlib に実装してから、aivmlib-web に移植する形をとっています。
 - **aivmlib-web**: TypeScript 実装。Web ブラウザ上での利用を想定しています。
   - [AIVM Generator](https://aivm-generator.aivis-project.com/) や Web ブラウザ上で音声合成を行うサービスで使うことを前提に設計・開発されています。
   - AIVM と AIVMX 両方のファイルを扱えます（主に AIVM Generator 向け）。
@@ -489,7 +488,7 @@ AIVM メタデータは既存のモデルフォーマット仕様で定められ
     - Node.js や Deno などのサーバーサイド JavaScript 環境への対応予定はありません。
 
 > [!TIP]
-> 現時点で、aivmlib / [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) 以外に公式でメンテナンスされる AIVM 仕様対応ライブラリはありません。  
+> 現時点では、aivmlib / [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) 以外に、公式にメンテナンスされる AIVM 仕様対応ライブラリはありません。  
 > 今後、サードパーティーの他言語向けライブラリが登場する可能性はあります。
 
 > [!IMPORTANT]
