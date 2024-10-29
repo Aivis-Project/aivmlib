@@ -19,7 +19,7 @@
 [AivisSpeech](https://github.com/Aivis-Project/AivisSpeech) / [AivisSpeech-Engine](https://github.com/Aivis-Project/AivisSpeech-Engine) をはじめとした AIVM 仕様に対応するソフトウェアに AIVM / AIVMX ファイルを追加することで、AI 音声合成モデルを簡単に利用できます。
 
 **aivmlib / [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) では、AIVM / AIVMX ファイル内のメタデータを読み書きするためのユーティリティを提供します。**  
-この Readme の後半では、aivmlib / aivmlib-web で対応している各 AIVM 仕様についても説明しています。
+この aivmlib は、Python で書かれた AIVM 仕様のリファレンス実装です。Web ブラウザで利用する場合は [aivmlib-web](https://github.com/Aivis-Project/aivmlib-web) をご利用ください。
 
 > [!TIP]  
 > **[AIVM Generator](https://aivm-generator.aivis-project.com/) では、ブラウザ上の GUI でかんたんに AIVM / AIVMX ファイルを生成・編集できます。**  
