@@ -97,7 +97,8 @@ def generate_aivm_metadata(
                 styles = [
                     AivmManifestSpeakerStyle(
                         # "Neutral" はより分かりやすい "ノーマル" に変換する
-                        name = 'ノーマル' if style_name == 'Neutral' else style_name,
+                        # ただし、既にスタイル名が "ノーマル" のスタイルがある場合は "Neutral" のままにする
+                        name = 'ノーマル' if (style_name == 'Neutral' and 'ノーマル' not in hyper_parameters.data.style2id) else style_name,
                         icon = None,
                         local_id = style_index,
                         voice_samples = [],
