@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aivmlib"
-version = "1.0.0"
+version = "1.0.0b0"
 description = "Aivis Voice Model File (.aivm/.aivmx) Utility Library"
 homepage = "https://github.com/Aivis-Project/aivmlib"
 repository = "https://github.com/Aivis-Project/aivmlib"
