@@ -229,7 +229,7 @@ def read_aivmx_metadata(aivmx_file: BinaryIO) -> AivmMetadata:
 
     # ONNX モデル (Protobuf) をロード
     try:
-        model = onnx.load_model(aivmx_file, format='protobuf')
+        model = onnx.load_model(aivmx_file, format='protobuf', load_external_data=False)
     except DecodeError:
         raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVMX (ONNX) file.')
 
@@ -342,7 +342,7 @@ def write_aivmx_metadata(aivmx_file: BinaryIO, aivm_metadata: AivmMetadata) -> b
 
     # ONNX モデル (Protobuf) をロード
     try:
-        model = onnx.load_model(aivmx_file, format='protobuf')
+        model = onnx.load_model(aivmx_file, format='protobuf', load_external_data=False)
     except DecodeError:
         raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVMX (ONNX) file.')
 
