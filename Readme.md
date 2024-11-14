@@ -364,8 +364,8 @@ class AivmManifest(BaseModel):
     name: Annotated[str, StringConstraints(min_length=1, max_length=80)]
     # 音声合成モデルの簡潔な説明 (最大 140 文字 / 省略時は空文字列を設定)
     description: Annotated[str, StringConstraints(max_length=140)] = ''
-    # 音声合成モデルの作成者名のリスト (省略時は空リストを設定)
-    # 作成者名には npm package.json の "author", "contributors" に指定できるものと同じ書式を利用できる
+    # 音声合成モデルの制作者名のリスト (省略時は空リストを設定)
+    # 制作者名には npm package.json の "author", "contributors" に指定できるものと同じ書式を利用できる
     # 例: ["John Doe", "Jane Doe <jane.doe@example.com>", "John Doe <john.doe@example.com> (https://example.com)"]
     creators: list[Annotated[str, StringConstraints(min_length=1, max_length=255)]] = []
     # 音声合成モデルのライセンス情報 (Markdown 形式またはプレーンテキスト / 省略時は None を設定)
