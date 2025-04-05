@@ -24,13 +24,13 @@ from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
 # ref: https://github.com/Aivis-Project/aivmlib#aivm-specification
 
 
-def generate_aivm_metadata(
+def _load_and_validate_hyper_parameters_and_style_vectors(
     model_architecture: ModelArchitecture,
     hyper_parameters_file: BinaryIO,
     style_vectors_file: BinaryIO | None = None,
-) -> AivmMetadata:
+) -> tuple[StyleBertVITS2HyperParameters, bytes]:
     """
-    ハイパーパラメータファイルとスタイルベクトルファイルから AIVM メタデータを生成する
+    ハイパーパラメータファイルとスタイルベクトルファイルを読み込み、バリデーションする内部メソッド
 
     Args:
         model_architecture (ModelArchitecture): 音声合成モデルのアーキテクチャ
@@ -38,7 +38,7 @@ def generate_aivm_metadata(
         style_vectors_file (BinaryIO | None): スタイルベクトルファイル
 
     Returns:
-        AivmMetadata: AIVM メタデータ
+        tuple[StyleBertVITS2HyperParameters, bytes]: ハイパーパラメータオブジェクトとスタイルベクトルのバイト列
 
     Raises:
         AivmValidationError: ハイパーパラメータのフォーマットが不正・スタイルベクトルが未指定・サポートされていないモデルアーキテクチャの場合
@@ -59,6 +59,41 @@ def generate_aivm_metadata(
         except ValidationError:
             raise AivmValidationError(f"The format of the hyper-parameters file for {model_architecture} is incorrect.")
 
+        # 話者情報とスタイル情報の存在チェック
+        if not hyper_parameters.data.spk2id:
+            raise AivmValidationError('No speaker information found in hyper-parameters.')
+        if not hyper_parameters.data.style2id:
+            raise AivmValidationError('No style information found in hyper-parameters.')
+
+        # 話者 ID の重複チェック
+        speaker_ids = set()
+        for speaker_name, speaker_id in hyper_parameters.data.spk2id.items():
+            if speaker_id in speaker_ids:
+                duplicate_speakers = [name for name, id in hyper_parameters.data.spk2id.items() if id == speaker_id]
+                duplicate_speakers_str = ','.join([f'"{name}"' for name in duplicate_speakers])
+                raise AivmValidationError(f"Duplicate speaker ID ({speaker_id}). Multiple speakers ({duplicate_speakers_str}) have the same ID.")
+            speaker_ids.add(speaker_id)
+
+        # スタイル ID の重複チェック
+        style_ids = set()
+        for style_name, style_id in hyper_parameters.data.style2id.items():
+            if style_id in style_ids:
+                duplicate_styles = [name for name, id in hyper_parameters.data.style2id.items() if id == style_id]
+                duplicate_styles_str = ','.join([f'"{name}"' for name in duplicate_styles])
+                raise AivmValidationError(f"Duplicate style ID ({style_id}). Multiple styles ({duplicate_styles_str}) have the same ID.")
+            style_ids.add(style_id)
+
+        # スタイル ID のバリデーション
+        # AIVM マニフェストの制約（0 <= id <= 31）を満たしているかチェック
+        for style_name, style_id in hyper_parameters.data.style2id.items():
+            if style_id < 0 or style_id > 31:
+                raise AivmValidationError(f'Style ID ({style_id}) of style "{style_name}" is out of valid range. Style ID must be between 0 and 31.')
+
+        # 話者 ID のバリデーション
+        for speaker_name, speaker_id in hyper_parameters.data.spk2id.items():
+            if speaker_id < 0:
+                raise AivmValidationError(f'Speaker ID ({speaker_id}) of speaker "{speaker_name}" is invalid. Speaker ID must be a non-negative integer.')
+
         # スタイルベクトルファイルを読み込む
         # Style-Bert-VITS2 モデルアーキテクチャの AIVM ファイルではスタイルベクトルが必須
         if style_vectors_file is None:
@@ -68,6 +103,41 @@ def generate_aivm_metadata(
         # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
         hyper_parameters_file.seek(0)
         style_vectors_file.seek(0)
+
+        return hyper_parameters, style_vectors
+
+    raise AivmValidationError(f"Unsupported model architecture: {model_architecture}.")
+
+
+def generate_aivm_metadata(
+    model_architecture: ModelArchitecture,
+    hyper_parameters_file: BinaryIO,
+    style_vectors_file: BinaryIO | None = None,
+) -> AivmMetadata:
+    """
+    ハイパーパラメータファイルとスタイルベクトルファイルから AIVM メタデータを生成する
+
+    Args:
+        model_architecture (ModelArchitecture): 音声合成モデルのアーキテクチャ
+        hyper_parameters_file (BinaryIO): ハイパーパラメータファイル
+        style_vectors_file (BinaryIO | None): スタイルベクトルファイル
+
+    Returns:
+        AivmMetadata: AIVM メタデータ
+
+    Raises:
+        AivmValidationError: ハイパーパラメータのフォーマットが不正・スタイルベクトルが未指定・サポートされていないモデルアーキテクチャの場合
+    """
+
+    # ハイパーパラメータとスタイルベクトルの読み込み・バリデーション
+    hyper_parameters, style_vectors = _load_and_validate_hyper_parameters_and_style_vectors(
+        model_architecture,
+        hyper_parameters_file,
+        style_vectors_file,
+    )
+
+    # Style-Bert-VITS2 系の音声合成モデルの場合
+    if model_architecture in [ModelArchitecture.StyleBertVITS2, ModelArchitecture.StyleBertVITS2JPExtra]:
 
         # デフォルトの AIVM マニフェストをコピーした後、ハイパーパラメータに記載の値で一部を上書きする
         manifest = DEFAULT_AIVM_MANIFEST.model_copy()
@@ -114,6 +184,174 @@ def generate_aivm_metadata(
             hyper_parameters = hyper_parameters,
             style_vectors = style_vectors,
         )
+
+    raise AivmValidationError(f"Unsupported model architecture: {model_architecture}.")
+
+
+def update_aivm_metadata(
+    existing_metadata: AivmMetadata,
+    hyper_parameters_file: BinaryIO,
+    style_vectors_file: BinaryIO | None = None,
+) -> tuple[AivmMetadata, list[str]]:
+    """
+    既存の AIVM メタデータを、新しいハイパーパラメータとスタイルベクトルで更新する（モデル差し替え用）
+    既存の UUID やユーザー設定メタデータは可能な限り維持される
+
+    Args:
+        existing_metadata (AivmMetadata): 既存の AIVM メタデータ
+        hyper_parameters_file (BinaryIO): 新しいハイパーパラメータファイル
+        style_vectors_file (BinaryIO | None): 新しいスタイルベクトルファイル
+
+    Returns:
+        tuple[AivmMetadata, list[str]]: 更新された AIVM メタデータと警告メッセージのリスト
+
+    Raises:
+        AivmValidationError: ハイパーパラメータのフォーマットが不正・スタイルベクトルが未指定・サポートされていないモデルアーキテクチャの場合
+    """
+
+    warnings = []
+
+    # 既存の AIVM マニフェストからモデルアーキテクチャを取得
+    model_architecture = existing_metadata.manifest.model_architecture
+
+    # ハイパーパラメータとスタイルベクトルの読み込み・バリデーション
+    hyper_parameters, style_vectors = _load_and_validate_hyper_parameters_and_style_vectors(
+        model_architecture,
+        hyper_parameters_file,
+        style_vectors_file,
+    )
+
+    # Style-Bert-VITS2 系の音声合成モデルの場合
+    if model_architecture in [ModelArchitecture.StyleBertVITS2, ModelArchitecture.StyleBertVITS2JPExtra]:
+
+        # 新しい話者・スタイル情報を取得
+        new_spk2id = hyper_parameters.data.spk2id
+        new_style2id = hyper_parameters.data.style2id
+
+        # 指定された既存の AIVM マニフェストをコピーした後、ハイパーパラメータの記述に応じてモデルアーキテクチャを更新
+        # NOTE: 音声合成モデル名は更新せず、既存の AIVM マニフェストの内容を維持している
+        manifest = existing_metadata.manifest.model_copy()
+        manifest.model_architecture = ModelArchitecture.StyleBertVITS2JPExtra if hyper_parameters.data.use_jp_extra else ModelArchitecture.StyleBertVITS2
+
+        # Map: local_id -> speaker_name
+        new_spk_id_to_name_map = {}
+        for name, id in new_spk2id.items():
+            new_spk_id_to_name_map[id] = name
+        # Map: local_id -> style_name
+        new_style_id_to_name_map = {}
+        for name, id in new_style2id.items():
+            new_style_id_to_name_map[id] = name
+        processed_new_speaker_local_ids = set()
+        updated_speakers = []
+
+        # 既存の話者情報リストを基準にイテレート
+        for existing_speaker in existing_metadata.manifest.speakers:
+            speaker_local_id = existing_speaker.local_id
+
+            # 既存話者の local_id が新しいハイパーパラメータの spk2id に存在するか確認
+            if speaker_local_id in new_spk_id_to_name_map:
+                processed_new_speaker_local_ids.add(speaker_local_id)
+                processed_new_style_local_ids = set()
+                updated_styles = []
+
+                # 既存のスタイル情報リストを基準にイテレート
+                for existing_style in existing_speaker.styles:
+                    style_local_id = existing_style.local_id
+
+                    # 既存スタイルの local_id が新しいハイパーパラメータの style2id に存在するか確認
+                    if style_local_id in new_style_id_to_name_map:
+                        processed_new_style_local_ids.add(style_local_id)
+
+                        # 既存のスタイル情報を維持
+                        updated_styles.append(existing_style)
+                    else:
+                        # スタイルが削除された場合
+                        warnings.append(f"話者「{existing_speaker.name}」のスタイル「{existing_style.name}」(ID: {style_local_id}) は、新しいハイパーパラメータに存在しないため削除されます。")
+
+                # 新しいハイパーパラメータで追加されたスタイルを追加
+                for style_name, style_local_id in new_style2id.items():
+                    if style_local_id not in processed_new_style_local_ids:
+                        # "Neutral" はより分かりやすい "ノーマル" に変換する
+                        # ただし、既にスタイル名が "ノーマル" のスタイルがある場合は "Neutral" のままにする
+                        new_style_name = 'ノーマル' if (style_name == 'Neutral' and 'ノーマル' not in new_style2id) else style_name
+                        updated_styles.append(AivmManifestSpeakerStyle(
+                            name = new_style_name,
+                            icon = None,
+                            local_id = style_local_id,
+                            voice_samples = [],
+                        ))
+                        warnings.append(f"話者「{existing_speaker.name}」にスタイル「{style_name}」(ID: {style_local_id}) が新しく追加されました。")
+
+                # モデルアーキテクチャが変更された場合に備え、supported_languages を計算し直す
+                # JP-Extra の場合は日本語のみ、それ以外は日本語・アメリカ英語・標準中国語をサポート
+                supported_languages = existing_speaker.supported_languages
+                new_supported_languages = ['ja'] if hyper_parameters.data.use_jp_extra else ['ja', 'en-US', 'zh-CN']
+                if supported_languages != new_supported_languages:
+                    supported_languages = new_supported_languages
+                    warnings.append(f"話者「{existing_speaker.name}」の対応言語が変更されました: {', '.join(supported_languages)}")
+
+                # 更新された話者情報を追加
+                updated_speakers.append(AivmManifestSpeaker(
+                    **existing_speaker.model_dump(),  # 既存の話者情報を維持
+                    supported_languages = supported_languages,  # 更新された対応言語情報
+                    styles = updated_styles,  # 更新されたスタイル情報リスト
+                ))
+
+            else:
+                # 話者が削除された場合
+                warnings.append(f"話者「{existing_speaker.name}」(ID: {speaker_local_id}) は、新しいハイパーパラメータに存在しないため削除されます。")
+
+        # 新しいハイパーパラメータで追加された話者を追加
+        for new_speaker_name, new_local_id in new_spk2id.items():
+            if new_local_id not in processed_new_speaker_local_ids:
+
+                # 新しいハイパーパラメータに含まれる全スタイルを追加
+                new_speaker_styles = []
+                for style_name, style_local_id in new_style2id.items():
+                    # "Neutral" はより分かりやすい "ノーマル" に変換する
+                    # ただし、既にスタイル名が "ノーマル" のスタイルがある場合は "Neutral" のままにする
+                    new_style_name = 'ノーマル' if (style_name == 'Neutral' and 'ノーマル' not in new_style2id) else style_name
+                    new_speaker_styles.append(AivmManifestSpeakerStyle(
+                        name = new_style_name,
+                        icon = None,
+                        local_id = style_local_id,
+                        voice_samples = [],
+                    ))
+
+                # 新しい話者を追加
+                updated_speakers.append(AivmManifestSpeaker(
+                    # ハイパーパラメータに記載の話者名を使用
+                    name = new_speaker_name,
+                    # デフォルトアイコンを使用
+                    icon = DEFAULT_ICON_DATA_URL,
+                    # JP-Extra の場合は日本語のみ、それ以外は日本語・アメリカ英語・標準中国語をサポート
+                    supported_languages = ['ja'] if hyper_parameters.data.use_jp_extra else ['ja', 'en-US', 'zh-CN'],
+                    # 話者 UUID はランダムに生成
+                    uuid = uuid.uuid4(),
+                    # ローカル ID は spk2id の ID の部分を使用
+                    local_id = new_local_id,
+                    # style2id の内容を反映
+                    styles = new_speaker_styles,
+                ))
+                warnings.append(f"話者「{new_speaker_name}」(ID: {new_local_id}) が新しく追加されました。")
+
+        # マニフェストに更新された話者情報リストを設定
+        manifest.speakers = updated_speakers
+
+        # 処理の結果、話者情報リストが空になった場合はエラーを投げる
+        if not updated_speakers:
+            raise AivmValidationError('Update resulted in an empty speakers list. The AIVM manifest must have at least one speaker.')
+
+        # 処理の結果、いずれかの話者のスタイル情報リストが空になった場合はエラーを投げる
+        for speaker in updated_speakers:
+            if not speaker.styles:
+                raise AivmValidationError(f"Update resulted in speaker '{speaker.name}' (ID: {speaker.local_id}) having no styles. Each speaker must have at least one style.")
+
+        return AivmMetadata(
+            manifest = manifest,
+            hyper_parameters = hyper_parameters,
+            style_vectors = style_vectors,
+        ), warnings
 
     raise AivmValidationError(f"Unsupported model architecture: {model_architecture}.")
 
@@ -243,6 +481,31 @@ def read_aivmx_metadata(aivmx_file: BinaryIO) -> AivmMetadata:
     return validate_aivm_metadata(raw_metadata)
 
 
+def serialize_aivm_metadata(aivm_metadata: AivmMetadata) -> dict[str, str]:
+    """
+    AIVM メタデータを生の辞書形式にシリアライズする
+
+    Args:
+        aivm_metadata (AivmMetadata): AIVM メタデータ
+
+    Returns:
+        dict[str, str]: シリアライズされた AIVM メタデータ（文字列から文字列へのマップ）
+    """
+
+    # AIVM メタデータをシリアライズ
+    # Safetensors / ONNX のメタデータ領域はネストなしの string から string への map でなければならないため、
+    # すべてのメタデータを文字列にシリアライズして格納する
+    raw_metadata = {}
+    raw_metadata['aivm_manifest'] = aivm_metadata.manifest.model_dump_json()
+    raw_metadata['aivm_hyper_parameters'] = aivm_metadata.hyper_parameters.model_dump_json()
+
+    # スタイルベクトルが存在する場合は Base64 エンコードして追加
+    if aivm_metadata.style_vectors is not None:
+        raw_metadata['aivm_style_vectors'] = base64.b64encode(aivm_metadata.style_vectors).decode('utf-8')
+
+    return raw_metadata
+
+
 def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> bytes:
     """
     AIVM メタデータを AIVM ファイルに書き込む
@@ -266,16 +529,9 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
     # 結果は AivmMetadata オブジェクトに直接 in-place で反映される
     apply_aivm_manifest_to_hyper_parameters(aivm_metadata)
 
-    # AIVM メタデータをシリアライズ
-    # Safetensors のメタデータ領域はネストなしの string から string への map でなければならないため、
-    # すべてのメタデータを文字列にシリアライズして格納する
-    metadata = {
-        'aivm_manifest': aivm_metadata.manifest.model_dump_json(),
-        'aivm_hyper_parameters': aivm_metadata.hyper_parameters.model_dump_json(),
-    }
-    if aivm_metadata.style_vectors is not None:
-        # スタイルベクトルが存在する場合は Base64 エンコードして追加
-        metadata['aivm_style_vectors'] = base64.b64encode(aivm_metadata.style_vectors).decode('utf-8')
+    # AIVM メタデータをシリアライズした上で、書き込む前にバリデーションを行う
+    raw_metadata = serialize_aivm_metadata(aivm_metadata)
+    validate_aivm_metadata(raw_metadata)
 
     # 引数として受け取った BinaryIO のカーソルを先頭にシーク
     aivm_file.seek(0)
@@ -290,7 +546,9 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
     except json.JSONDecodeError:
         raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVM (Safetensors) file.')
 
-    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
+    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す (重要)
+    # ファイルポインタを先頭に戻さないと、このメソッド終了後にユーザーがファイルを使用する際に
+    # カーソルが末尾にある状態となり、正しく読み書きできなくなる可能性がある
     aivm_file.seek(0)
 
     # 既存の __metadata__ を取得または新規作成
@@ -298,7 +556,7 @@ def write_aivm_metadata(aivm_file: BinaryIO, aivm_metadata: AivmMetadata) -> byt
 
     # 既存の __metadata__ に新しいメタデータを追加
     # 既に存在するキーは上書きされる
-    existing_metadata.update(metadata)
+    existing_metadata.update(raw_metadata)
     existing_header['__metadata__'] = existing_metadata
 
     # ヘッダー JSON を UTF-8 にエンコード
@@ -337,6 +595,10 @@ def write_aivmx_metadata(aivmx_file: BinaryIO, aivm_metadata: AivmMetadata) -> b
     # 結果は AivmMetadata オブジェクトに直接 in-place で反映される
     apply_aivm_manifest_to_hyper_parameters(aivm_metadata)
 
+    # AIVM メタデータをシリアライズした上で、書き込む前にバリデーションを行う
+    raw_metadata = serialize_aivm_metadata(aivm_metadata)
+    validate_aivm_metadata(raw_metadata)
+
     # 引数として受け取った BinaryIO のカーソルを先頭にシーク
     aivmx_file.seek(0)
 
@@ -346,22 +608,13 @@ def write_aivmx_metadata(aivmx_file: BinaryIO, aivm_metadata: AivmMetadata) -> b
     except DecodeError:
         raise AivmValidationError('Failed to decode AIVM metadata. This file is not an AIVMX (ONNX) file.')
 
-    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
+    # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す (重要)
+    # ファイルポインタを先頭に戻さないと、このメソッド終了後にユーザーがファイルを使用する際に
+    # カーソルが末尾にある状態となり、正しく読み書きできなくなる可能性がある
     aivmx_file.seek(0)
 
-    # AIVM メタデータをシリアライズ
-    # ONNX のメタデータ領域はネストなしの string から string への key-value でなければならないため、
-    # すべてのメタデータを文字列にシリアライズして格納する
-    metadata = {
-        'aivm_manifest': aivm_metadata.manifest.model_dump_json(),
-        'aivm_hyper_parameters': aivm_metadata.hyper_parameters.model_dump_json(),
-    }
-    if aivm_metadata.style_vectors is not None:
-        # スタイルベクトルが存在する場合は Base64 エンコードして追加
-        metadata['aivm_style_vectors'] = base64.b64encode(aivm_metadata.style_vectors).decode('utf-8')
-
     # メタデータを ONNX モデルに追加
-    for key, value in metadata.items():
+    for key, value in raw_metadata.items():
         # 同一のキーが存在する場合は上書き
         for prop in model.metadata_props:
             if prop.key == key:
@@ -403,11 +656,34 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
         aivm_metadata.hyper_parameters.data.validation_files = 'val.list'
 
         # 話者名を反映
-        new_spk2id = {speaker.name: speaker.local_id for speaker in aivm_metadata.manifest.speakers}
+        new_spk2id = {}
+        for speaker in aivm_metadata.manifest.speakers:
+            local_id = speaker.local_id
+            # 話者のローカル ID が元のハイパーパラメータに存在するかチェック
+            old_key = None
+            for key, id in aivm_metadata.hyper_parameters.data.spk2id.items():
+                if id == local_id:
+                    old_key = key
+                    break
+            # 存在すれば新しい話者名をキーとして追加
+            if old_key is not None:
+                new_spk2id[speaker.name] = local_id
         aivm_metadata.hyper_parameters.data.spk2id = new_spk2id
 
         # スタイル名を反映
-        new_style2id = {style.name: style.local_id for speaker in aivm_metadata.manifest.speakers for style in speaker.styles}
+        new_style2id = {}
+        for speaker in aivm_metadata.manifest.speakers:
+            for style in speaker.styles:
+                local_id = style.local_id
+                # スタイルのローカル ID が元のハイパーパラメータに存在するかチェック
+                old_key = None
+                for key, id in aivm_metadata.hyper_parameters.data.style2id.items():
+                    if id == local_id:
+                        old_key = key
+                        break
+                # 存在すれば新しいスタイル名をキーとして追加
+                if old_key is not None:
+                    new_style2id[style.name] = local_id
         aivm_metadata.hyper_parameters.data.style2id = new_style2id
 
 
