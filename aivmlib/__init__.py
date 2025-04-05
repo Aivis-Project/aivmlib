@@ -656,7 +656,7 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
         aivm_metadata.hyper_parameters.data.validation_files = 'val.list'
 
         # 話者名を反映
-        new_spk2id = {}
+        new_spk2id: dict[str, int] = {}
         for speaker in aivm_metadata.manifest.speakers:
             local_id = speaker.local_id
             # 話者のローカル ID が元のハイパーパラメータに存在するかチェック
@@ -669,9 +669,10 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
             if old_key is not None:
                 new_spk2id[speaker.name] = local_id
         aivm_metadata.hyper_parameters.data.spk2id = new_spk2id
+        aivm_metadata.hyper_parameters.data.n_speakers = len(new_spk2id)
 
         # スタイル名を反映
-        new_style2id = {}
+        new_style2id: dict[str, int] = {}
         for speaker in aivm_metadata.manifest.speakers:
             for style in speaker.styles:
                 local_id = style.local_id
@@ -685,7 +686,7 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
                 if old_key is not None:
                     new_style2id[style.name] = local_id
         aivm_metadata.hyper_parameters.data.style2id = new_style2id
-
+        aivm_metadata.hyper_parameters.data.num_styles = len(new_style2id)
 
 class AivmValidationError(Exception):
     """
