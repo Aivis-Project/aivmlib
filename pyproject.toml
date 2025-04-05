@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "aivmlib"
-version = "1.0.1"
+version = "1.1.0"
 description = "Aivis Voice Model File (.aivm/.aivmx) Utility Library"
 homepage = "https://github.com/Aivis-Project/aivmlib"
 repository = "https://github.com/Aivis-Project/aivmlib"
@@ -37,8 +37,6 @@ line-length = 120
 indent-width = 4
 # Python 3.11 を利用する
 target-version = "py311"
-# data/ ディレクトリは対象から除外する
-extend-exclude = ["data/"]
 
 [tool.ruff.lint]
 # flake8, pycodestyle, isort, Ruff 固有のルールを使う
