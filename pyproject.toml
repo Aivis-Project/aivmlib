@@ -9,13 +9,19 @@ authors = ["Aivis Project <info@aivis-project.com>"]
 license = "MIT"
 readme = "Readme.md"
 
+[tool.taskipy.tasks]
+lint = "ruff check --fix ."
+format = "ruff format ."
+
 [tool.poetry.dependencies]
 onnx = ">=1.17.0"
-python = ">=3.10"
+python = ">=3.10,<4.0"
 pydantic = ">=2.4.0"
 typer = {extras = ["all"], version = ">=0.9.0"}
 
 [tool.poetry.group.dev.dependencies]
+ruff = ">=0.11.4"
+taskipy = ">=1.14.1"
 
 [tool.poetry.scripts]
 aivmlib = "aivmlib.__main__:app"
@@ -23,3 +29,34 @@ aivmlib = "aivmlib.__main__:app"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff]
+# 1行の長さを最大120文字に設定
+line-length = 120
+# インデントの幅を4スペースに設定
+indent-width = 4
+# Python 3.11 を利用する
+target-version = "py311"
+# data/ ディレクトリは対象から除外する
+extend-exclude = ["data/"]
+
+[tool.ruff.lint]
+# flake8, pycodestyle, isort, Ruff 固有のルールを使う
+select = ["F", "E", "W", "I", "RUF"]
+ignore = [
+    "E501",    # 1行の長さを超えている場合の警告を抑制
+    "E731",    # Do not assign a `lambda` expression, use a `def` を抑制
+    "RUF001",  # 全角記号など `ambiguous unicode character` も使いたいため
+    "RUF002",  # 全角記号など `ambiguous unicode character` も使いたいため
+    "RUF003",  # 全角記号など `ambiguous unicode character` も使いたいため
+]
+
+[tool.ruff.lint.isort]
+# インポートブロックの後に2行空ける
+lines-after-imports = 2
+
+[tool.ruff.format]
+# シングルクオートを使う
+quote-style = "single"
+# インデントにはスペースを使う
+indent-style = "space"

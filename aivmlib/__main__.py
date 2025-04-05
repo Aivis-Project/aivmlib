@@ -1,12 +1,12 @@
-
 import re
-import rich
 import traceback
-import typer
 from pathlib import Path
+from typing import Annotated, Union
+
+import rich
+import typer
 from rich.rule import Rule
 from rich.style import Style
-from typing import Annotated, Union
 
 import aivmlib
 from aivmlib.schemas.aivm_manifest import ModelArchitecture
@@ -16,9 +16,7 @@ app = typer.Typer(help='Aivis Voice Model File (.aivm/.aivmx) Utility Library')
 
 
 @app.command()
-def show_metadata(
-    file_path: Annotated[Path, typer.Argument(help='Path to the AIVM / AIVMX file')]
-):
+def show_metadata(file_path: Annotated[Path, typer.Argument(help='Path to the AIVM / AIVMX file')]):
     """
     指定されたパスの AIVM / AIVMX ファイル内に格納されている AIVM メタデータを見やすく出力する
     """
@@ -54,9 +52,15 @@ def show_metadata(
 def create_aivm(
     output_path: Annotated[Path, typer.Option('-o', '--output', help='Path to the output AIVM file')],
     safetensors_model_path: Annotated[Path, typer.Option('-m', '--model', help='Path to the Safetensors model file')],
-    hyper_parameters_path: Annotated[Union[Path, None], typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')] = None,
-    style_vectors_path: Annotated[Union[Path, None], typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')] = None,
-    model_architecture: Annotated[ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')] = ModelArchitecture.StyleBertVITS2JPExtra,
+    hyper_parameters_path: Annotated[
+        Union[Path, None], typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')
+    ] = None,
+    style_vectors_path: Annotated[
+        Union[Path, None], typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')
+    ] = None,
+    model_architecture: Annotated[
+        ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')
+    ] = ModelArchitecture.StyleBertVITS2JPExtra,
 ):
     """
     与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ, スタイルベクトルから AIVM メタデータを生成した上で、
@@ -139,9 +143,15 @@ def create_aivm(
 def create_aivmx(
     output_path: Annotated[Path, typer.Option('-o', '--output', help='Path to the output AIVMX file')],
     onnx_model_path: Annotated[Path, typer.Option('-m', '--model', help='Path to the ONNX model file')],
-    hyper_parameters_path: Annotated[Union[Path, None], typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')] = None,
-    style_vectors_path: Annotated[Union[Path, None], typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')] = None,
-    model_architecture: Annotated[ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')] = ModelArchitecture.StyleBertVITS2JPExtra,
+    hyper_parameters_path: Annotated[
+        Union[Path, None], typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')
+    ] = None,
+    style_vectors_path: Annotated[
+        Union[Path, None], typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')
+    ] = None,
+    model_architecture: Annotated[
+        ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')
+    ] = ModelArchitecture.StyleBertVITS2JPExtra,
 ):
     """
     与えられたアーキテクチャ, 学習済みモデル, ハイパーパラメータ, スタイルベクトルから AIVM メタデータを生成した上で、

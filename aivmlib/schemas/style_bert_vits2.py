@@ -1,9 +1,9 @@
-
 # 以下は Style-Bert-VITS2 v2.4.1 のハイパーパラメータスキーマ定義を一部改変したもの
 # ref: https://github.com/litagin02/Style-Bert-VITS2/blob/2.4.1/style_bert_vits2/models/hyper_parameters.py
 
-from pydantic import BaseModel, ConfigDict
 from typing import Optional
+
+from pydantic import BaseModel, ConfigDict
 
 
 class StyleBertVITS2HyperParametersTrain(BaseModel):
@@ -32,10 +32,11 @@ class StyleBertVITS2HyperParametersTrain(BaseModel):
     freeze_style: bool = False
     freeze_decoder: bool = False
 
+
 class StyleBertVITS2HyperParametersData(BaseModel):
     use_jp_extra: bool = True
-    training_files: str = "Data/Dummy/train.list"
-    validation_files: str = "Data/Dummy/val.list"
+    training_files: str = 'Data/Dummy/train.list'
+    validation_files: str = 'Data/Dummy/val.list'
     max_wav_value: float = 32768.0
     sampling_rate: int = 44100
     filter_length: int = 2048
@@ -48,19 +49,21 @@ class StyleBertVITS2HyperParametersData(BaseModel):
     n_speakers: int = 1
     cleaned_text: bool = True
     spk2id: dict[str, int] = {
-        "Dummy": 0,
+        'Dummy': 0,
     }
     num_styles: int = 1
     style2id: dict[str, int] = {
-        "Neutral": 0,
+        'Neutral': 0,
     }
 
+
 class StyleBertVITS2HyperParametersModelSLM(BaseModel):
-    model: str = "./slm/wavlm-base-plus"
+    model: str = './slm/wavlm-base-plus'
     sr: int = 16000
     hidden: int = 768
     nlayers: int = 13
     initial_channel: int = 64
+
 
 class StyleBertVITS2HyperParametersModel(BaseModel):
     use_spk_conditioned_encoder: bool = True
@@ -75,7 +78,7 @@ class StyleBertVITS2HyperParametersModel(BaseModel):
     n_layers: int = 6
     kernel_size: int = 3
     p_dropout: float = 0.1
-    resblock: str = "1"
+    resblock: str = '1'
     resblock_kernel_sizes: list[int] = [3, 7, 11]
     resblock_dilation_sizes: list[list[int]] = [
         [1, 3, 5],
@@ -90,9 +93,10 @@ class StyleBertVITS2HyperParametersModel(BaseModel):
     gin_channels: int = 512
     slm: StyleBertVITS2HyperParametersModelSLM = StyleBertVITS2HyperParametersModelSLM()
 
+
 class StyleBertVITS2HyperParameters(BaseModel):
-    model_name: str = "Dummy"
-    version: str = "2.0-JP-Extra"
+    model_name: str = 'Dummy'
+    version: str = '2.0-JP-Extra'
     train: StyleBertVITS2HyperParametersTrain = StyleBertVITS2HyperParametersTrain()
     data: StyleBertVITS2HyperParametersData = StyleBertVITS2HyperParametersData()
     model: StyleBertVITS2HyperParametersModel = StyleBertVITS2HyperParametersModel()
