@@ -52,7 +52,7 @@ def _load_and_validate_hyper_parameters_and_style_vectors(
     # Style-Bert-VITS2 系の音声合成モデルの場合
     if model_architecture in [ModelArchitecture.StyleBertVITS2, ModelArchitecture.StyleBertVITS2JPExtra]:
 
-        # ハイパーパラメータファイル (JSON) を読み込んだ後、Pydantic でバリデーションする
+        # ハイパーパラメータファイル (JSON) を読み込んだ後、Pydantic でバリデーション
         hyper_parameters_content = hyper_parameters_file.read().decode('utf-8')
         try:
             hyper_parameters = StyleBertVITS2HyperParameters.model_validate_json(hyper_parameters_content)
@@ -94,7 +94,7 @@ def _load_and_validate_hyper_parameters_and_style_vectors(
             if speaker_id < 0:
                 raise AivmValidationError(f'Speaker ID ({speaker_id}) of speaker "{speaker_name}" is invalid. Speaker ID must be a non-negative integer.')
 
-        # スタイルベクトルファイルを読み込む
+        # スタイルベクトルファイルの読み込み
         # Style-Bert-VITS2 モデルアーキテクチャの AIVM ファイルではスタイルベクトルが必須
         if style_vectors_file is None:
             raise AivmValidationError('Style vectors file is not specified.')
@@ -231,7 +231,10 @@ def update_aivm_metadata(
         # 指定された既存の AIVM マニフェストをコピーした後、ハイパーパラメータの記述に応じてモデルアーキテクチャを更新
         # NOTE: 音声合成モデル名は更新せず、既存の AIVM マニフェストの内容を維持している
         manifest = existing_metadata.manifest.model_copy()
-        manifest.model_architecture = ModelArchitecture.StyleBertVITS2JPExtra if hyper_parameters.data.use_jp_extra else ModelArchitecture.StyleBertVITS2
+        if hyper_parameters.data.use_jp_extra:
+            manifest.model_architecture = ModelArchitecture.StyleBertVITS2JPExtra
+        else:
+            manifest.model_architecture = ModelArchitecture.StyleBertVITS2
 
         # Map: local_id -> speaker_name
         new_spk_id_to_name_map = {}
