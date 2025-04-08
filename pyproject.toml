@@ -35,12 +35,12 @@ build-backend = "poetry.core.masonry.api"
 line-length = 120
 # インデントの幅を4スペースに設定
 indent-width = 4
-# Python 3.11 を利用する
-target-version = "py311"
+# Python 3.10 を利用する
+target-version = "py310"
 
 [tool.ruff.lint]
-# flake8, pycodestyle, isort, Ruff 固有のルールを使う
-select = ["F", "E", "W", "I", "RUF"]
+# flake8, pycodestyle, pyupgrade, isort, Ruff 固有のルールを使う
+select = ["F", "E", "W", "UP", "I", "RUF"]
 ignore = [
     "E501",    # 1行の長さを超えている場合の警告を抑制
     "E731",    # Do not assign a `lambda` expression, use a `def` を抑制

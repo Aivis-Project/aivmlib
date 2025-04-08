@@ -1,7 +1,6 @@
 # 以下は Style-Bert-VITS2 v2.4.1 のハイパーパラメータスキーマ定義を一部改変したもの
 # ref: https://github.com/litagin02/Style-Bert-VITS2/blob/2.4.1/style_bert_vits2/models/hyper_parameters.py
 
-from typing import Optional
 
 from pydantic import BaseModel, ConfigDict
 
@@ -44,7 +43,7 @@ class StyleBertVITS2HyperParametersData(BaseModel):
     win_length: int = 2048
     n_mel_channels: int = 128
     mel_fmin: float = 0.0
-    mel_fmax: Optional[float] = None
+    mel_fmax: float | None = None
     add_blank: bool = True
     n_speakers: int = 1
     cleaned_text: bool = True

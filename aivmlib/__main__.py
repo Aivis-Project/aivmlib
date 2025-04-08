@@ -1,7 +1,7 @@
 import re
 import traceback
 from pathlib import Path
-from typing import Annotated, Union
+from typing import Annotated
 
 import rich
 import typer
@@ -53,10 +53,10 @@ def create_aivm(
     output_path: Annotated[Path, typer.Option('-o', '--output', help='Path to the output AIVM file')],
     safetensors_model_path: Annotated[Path, typer.Option('-m', '--model', help='Path to the Safetensors model file')],
     hyper_parameters_path: Annotated[
-        Union[Path, None], typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')
+        Path | None, typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')
     ] = None,
     style_vectors_path: Annotated[
-        Union[Path, None], typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')
+        Path | None, typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')
     ] = None,
     model_architecture: Annotated[
         ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')
@@ -144,10 +144,10 @@ def create_aivmx(
     output_path: Annotated[Path, typer.Option('-o', '--output', help='Path to the output AIVMX file')],
     onnx_model_path: Annotated[Path, typer.Option('-m', '--model', help='Path to the ONNX model file')],
     hyper_parameters_path: Annotated[
-        Union[Path, None], typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')
+        Path | None, typer.Option('-h', '--hyper-parameters', help='Path to the hyper parameters file (optional)')
     ] = None,
     style_vectors_path: Annotated[
-        Union[Path, None], typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')
+        Path | None, typer.Option('-s', '--style-vectors', help='Path to the style vectors file (optional)')
     ] = None,
     model_architecture: Annotated[
         ModelArchitecture, typer.Option('-a', '--model-architecture', help='Model architecture')

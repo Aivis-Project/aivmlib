@@ -713,7 +713,9 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
                 new_spk2id[speaker.name] = local_id
             else:
                 # 必ず AivmManifest.speakers[].local_id の値が spk2id に存在しなければならない
-                raise AivmValidationError(f'Speaker ID "{local_id}" of speaker "{speaker.name}" is not found in hyper-parameters.')
+                raise AivmValidationError(
+                    f'Speaker ID "{local_id}" of speaker "{speaker.name}" is not found in hyper-parameters.'
+                )
         aivm_metadata.hyper_parameters.data.spk2id = new_spk2id
         aivm_metadata.hyper_parameters.data.n_speakers = len(new_spk2id)
 
@@ -733,7 +735,9 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
                     new_style2id[style.name] = local_id
                 else:
                     # 必ず AivmManifest.speakers[].styles[].local_id の値が style2id に存在しなければならない
-                    raise AivmValidationError(f'Style ID "{local_id}" of style "{style.name}" is not found in hyper-parameters.')
+                    raise AivmValidationError(
+                        f'Style ID "{local_id}" of style "{style.name}" is not found in hyper-parameters.'
+                    )
         aivm_metadata.hyper_parameters.data.style2id = new_style2id
         aivm_metadata.hyper_parameters.data.num_styles = len(new_style2id)
 
