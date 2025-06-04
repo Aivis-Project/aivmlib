@@ -467,15 +467,27 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     # 引数として受け取った BinaryIO のカーソルを先頭にシーク
     aivm_file.seek(0)
 
-    # ファイルの内容を読み込む
-    array_buffer = aivm_file.read()
-    header_size = int.from_bytes(array_buffer[:8], 'little')
+    # 最初の8バイトを読み取ってヘッダーサイズを取得
+    header_size_bytes = aivm_file.read(8)
+    if len(header_size_bytes) < 8:
+        raise AivmValidationError('Failed to read header size. This file is not an AIVM (Safetensors) file.')
+    header_size = int.from_bytes(header_size_bytes, 'little')
+
+    # ヘッダーサイズが異常に大きい場合はエラー（不正なファイルフォーマットの可能性が高い）
+    if header_size <= 0 or header_size > 100 * 1024 * 1024:  # 100MB を上限とする
+        raise AivmValidationError('Invalid header size. This file is not an AIVM (Safetensors) file.')
+
+    # ヘッダー部分のみを読み取る
+    ## Safetensors 形式はヘッダー部分と Weight 部分で明確に分割されているので、
+    ## ヘッダーのみを読み取る方が、巨大なモデルファイル全体を読み取るよりも遥かに効率が良い
+    header_bytes = aivm_file.read(header_size)
+    if len(header_bytes) < header_size:
+        raise AivmValidationError('Failed to read header. This file is not an AIVM (Safetensors) file.')
 
     # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
     aivm_file.seek(0)
 
-    # ヘッダー部分を抽出
-    header_bytes = array_buffer[8 : 8 + header_size]
+    # ヘッダーをデコードして JSON としてパース
     try:
         header_text = header_bytes.decode('utf-8')
         header_json = json.loads(header_text)
