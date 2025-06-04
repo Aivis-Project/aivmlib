@@ -482,7 +482,7 @@ def read_aivm_metadata(aivm_file: BinaryIO) -> AivmMetadata:
     ## ヘッダーのみを読み取る方が、巨大なモデルファイル全体を読み取るよりも遥かに効率が良い
     header_bytes = aivm_file.read(header_size)
     if len(header_bytes) < header_size:
-        raise AivmValidationError('Failed to read header. This file is not an AIVM (Safetensors) file.')
+        raise AivmValidationError('Failed to read header.')
 
     # 引数として受け取った BinaryIO のカーソルを再度先頭に戻す
     aivm_file.seek(0)
