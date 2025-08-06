@@ -729,7 +729,9 @@ def apply_aivm_manifest_to_hyper_parameters(aivm_metadata: AivmMetadata) -> None
                     f'Speaker ID "{local_id}" of speaker "{speaker.name}" is not found in hyper-parameters.'
                 )
         aivm_metadata.hyper_parameters.data.spk2id = new_spk2id
-        aivm_metadata.hyper_parameters.data.n_speakers = len(new_spk2id)
+        # n_speakers はモデル構造に関わるハイパーパラメータなので、もし spk2id の長さと一致していない場合でも絶対に変更すべきではない
+        # 2話者モデルのうち1話者のみをハイパーパラメータから削除して事実上無効化したような場合に、
+        # n_speakers の値 (2) を現在 spk2id の長さ (1) に合わせるとモデルロードに失敗する
 
         # スタイル名を反映
         new_style2id: dict[str, int] = {}
