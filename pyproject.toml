@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "aivmlib"
-version = "1.2.0"
+version = "1.2.1"
 description = "Aivis Voice Model File (.aivm/.aivmx) Utility Library"
 homepage = "https://github.com/Aivis-Project/aivmlib"
 repository = "https://github.com/Aivis-Project/aivmlib"
 documentation = "https://github.com/Aivis-Project/aivmlib"
-authors = ["Aivis Project <info@aivis-project.com>"]
+authors = ["Aivis Project <contact@aivis-project.com>"]
 license = "MIT"
 readme = "Readme.md"
 
