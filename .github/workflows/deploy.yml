@@ -12,7 +12,7 @@ on:
         description: 'Publish to PyPI (Production)'
 
 jobs:
-  build_and_publish:
+  build-and-publish:
     runs-on: ubuntu-latest
     name: Build and publish distribution
 
