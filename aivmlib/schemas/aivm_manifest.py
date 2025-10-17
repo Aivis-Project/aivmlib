@@ -1,7 +1,7 @@
 from __future__ import annotations
 
+import sys
 from dataclasses import dataclass
-from enum import StrEnum
 from typing import Annotated, Literal
 from uuid import UUID
 
@@ -9,6 +9,12 @@ from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 from aivmlib.schemas.aivm_manifest_constants import DEFAULT_ICON_DATA_URL
 from aivmlib.schemas.style_bert_vits2 import StyleBertVITS2HyperParameters
+
+
+if sys.version_info >= (3, 11):
+    from enum import StrEnum
+else:
+    from aivmlib.utils import StrEnum
 
 
 class ModelArchitecture(StrEnum):
