@@ -314,9 +314,11 @@ def update_aivm_metadata(
                 # 更新された話者情報を追加
                 updated_speakers.append(
                     AivmManifestSpeaker(
-                        **existing_speaker.model_dump(),  # 既存の話者情報を維持
-                        supported_languages=supported_languages,  # 更新された対応言語情報
-                        styles=updated_styles,  # 更新されたスタイル情報リスト
+                        **{
+                            **existing_speaker.model_dump(),  # 既存の話者情報を維持
+                            'supported_languages': supported_languages,  # 更新された対応言語情報
+                            'styles': updated_styles,  # 更新されたスタイル情報リスト
+                        }
                     )
                 )
 
