@@ -2,20 +2,15 @@
 name = "aivmlib"
 version = "1.2.2"
 description = "Aivis Voice Model File (.aivm/.aivmx) Utility Library"
+readme = "Readme.md"
+license = "MIT"
+authors = ["Aivis Project <contact@aivis-project.com>"]
 homepage = "https://github.com/Aivis-Project/aivmlib"
 repository = "https://github.com/Aivis-Project/aivmlib"
-documentation = "https://github.com/Aivis-Project/aivmlib"
-authors = ["Aivis Project <contact@aivis-project.com>"]
-license = "MIT"
-readme = "Readme.md"
-
-[tool.taskipy.tasks]
-lint = "ruff check --fix ."
-format = "ruff format ."
 
 [tool.poetry.dependencies]
-onnx = ">=1.17.0"
 python = ">=3.10,<4.0"
+onnx = ">=1.17.0"
 pydantic = ">=2.4.0"
 typer = ">=0.12.1"
 
@@ -25,6 +20,10 @@ taskipy = ">=1.14.1"
 
 [tool.poetry.scripts]
 aivmlib = "aivmlib.__main__:app"
+
+[tool.taskipy.tasks]
+lint = "ruff check --fix ."
+format = "ruff format ."
 
 [build-system]
 requires = ["poetry-core"]
